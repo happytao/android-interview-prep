@@ -1,0 +1,4 @@
+{
+  "name": "网络协议、TLS 鉴权与长连接",
+  "description": "TCP 握手挥手、TLS 1.2/1.3 单双向鉴权、HTTP/2/QUIC/HttpDNS 与 Socket/WebSocket"
+}

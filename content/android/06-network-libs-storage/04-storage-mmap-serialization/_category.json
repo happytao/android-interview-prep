@@ -1,0 +1,4 @@
+{
+  "name": "本地存储、mmap 与序列化",
+  "description": "SP 卡顿缺陷与 DataStore/MMKV 对比、mmap 内存映射原理、Parcelable 与 JSON 库选型"
+}

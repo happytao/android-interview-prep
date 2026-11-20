@@ -1,0 +1,4 @@
+{
+  "name": "RecyclerView 核心原理与性能调优",
+  "description": "四级缓存结构与 getViewForPosition 查找顺序、DiffUtil Payload 与 Prefetch"
+}

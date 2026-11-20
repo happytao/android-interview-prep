@@ -1,0 +1,5 @@
+{
+  "name": "性能优化与稳定性治理",
+  "description": "LeakCanary 与 KOOM 内存排查、冷启动与 Baseline Profiles、Perfetto 实战与 ANR/Crash",
+  "icon": "Gauge"
+}

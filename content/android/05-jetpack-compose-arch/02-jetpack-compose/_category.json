@@ -1,0 +1,4 @@
+{
+  "name": "Jetpack Compose 核心原理与实践",
+  "description": "三阶段渲染、重组稳定性优化、状态与副作用、LazyColumn 调优与 View 互操作"
+}

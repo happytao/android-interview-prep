@@ -1,0 +1,4 @@
+{
+  "name": "Binder IPC 与进程模型",
+  "description": "mmap 一次拷贝、AIDL 与 ServiceManager、传输上限治理与 LMKD 优先级"
+}

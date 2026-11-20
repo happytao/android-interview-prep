@@ -1,0 +1,5 @@
+{
+  "name": "Jetpack 组件、Compose 与主流架构",
+  "description": "Lifecycle/ViewModel、Compose 深入、Room 迁移与 SQLite 事务、UDF 与 Hilt",
+  "icon": "Boxes"
+}

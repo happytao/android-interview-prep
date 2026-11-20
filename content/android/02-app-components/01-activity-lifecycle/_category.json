@@ -1,0 +1,4 @@
+{
+  "name": "Activity 生命周期、启动模式与状态保存",
+  "description": "交错生命周期、TaskAffinity 与 LaunchMode、状态恢复与冷启动全链路"
+}

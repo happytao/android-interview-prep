@@ -1,0 +1,4 @@
+{
+  "name": "音视频开发与系统媒体库（MediaStore）",
+  "description": "MediaCodec 硬解与 Surface 渲染、ExoPlayer 缓冲与 AudioFocus、MediaStore/PhotoPicker 媒体加载"
+}

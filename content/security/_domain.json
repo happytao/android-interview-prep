@@ -1,0 +1,12 @@
+{
+  "id": "security",
+  "name": "网络安全",
+  "tagline": "远期规划：Web/移动安全攻防、密码学实践、逆向与渗透审计",
+  "status": "planned",
+  "order": 5,
+  "icon": "ShieldCheck",
+  "accent": {
+    "light": "#E11D48",
+    "dark": "#FB7185"
+  }
+}

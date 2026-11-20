@@ -1,0 +1,4 @@
+{
+  "name": "内存优化与 OOM / 泄漏治理",
+  "description": "LeakCanary 原理、高频内存泄漏排查、Java/Native/FD/线程数 OOM 与 KOOM"
+}

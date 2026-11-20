@@ -1,0 +1,5 @@
+{
+  "name": "网络通信、协议、三方库与本地存储",
+  "description": "TCP/mTLS/HTTP3/WebSocket、OkHttp/Okio/Retrofit、Glide 4 缓存、DataStore 与 mmap",
+  "icon": "Network"
+}

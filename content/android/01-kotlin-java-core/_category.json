@@ -1,0 +1,5 @@
+{
+  "name": "Kotlin 与 Java 核心基础",
+  "description": "Kotlin 协程状态机、结构化并发、泛型反射与 JVM/ART 并发及 GC 基础",
+  "icon": "Cpu"
+}

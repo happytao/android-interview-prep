@@ -1,0 +1,4 @@
+{
+  "name": "图像处理与高斯模糊",
+  "description": "RenderEffect/AGSL/OpenGL/NDK 高斯模糊方案演进、Canvas/Paint/ColorMatrix/PorterDuff/ImageDecoder"
+}

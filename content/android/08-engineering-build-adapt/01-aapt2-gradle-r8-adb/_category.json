@@ -1,0 +1,4 @@
+{
+  "name": "编译构建、AAPT2、Gradle、混淆与 ADB",
+  "description": "APK 构建与 V1–V4 签名、Manifest/Resources 合并、Flavor 变体、MultiDex/R8 与 ADB"
+}

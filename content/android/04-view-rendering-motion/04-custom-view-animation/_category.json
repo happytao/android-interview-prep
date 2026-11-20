@@ -1,0 +1,4 @@
+{
+  "name": "自定义 View 与动画体系",
+  "description": "wrap_content 与 SurfaceView/TextureView 选型、动画全景对比及属性动画 VSync 驱动"
+}

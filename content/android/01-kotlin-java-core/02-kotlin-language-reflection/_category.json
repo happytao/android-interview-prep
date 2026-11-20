@@ -1,0 +1,4 @@
+{
+  "name": "Kotlin 语言机制与泛型反射",
+  "description": "inline/reified、Lambda 变量捕获、委托属性、空安全与 APT/KSP"
+}

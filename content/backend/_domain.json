@@ -1,0 +1,12 @@
+{
+  "id": "backend",
+  "name": "后端架构",
+  "tagline": "远期规划：高并发服务、数据库内核、缓存一致性与分布式系统",
+  "status": "planned",
+  "order": 3,
+  "icon": "Server",
+  "accent": {
+    "light": "#D97706",
+    "dark": "#FBBF24"
+  }
+}

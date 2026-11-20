@@ -1,0 +1,17 @@
+{
+  "name": "技术面试复习站",
+  "short_name": "面试复习站",
+  "description": "面向 Android 中级开发工程师的原理拆解、图解流程与自测复习知识库",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FAFBF9",
+  "theme_color": "#0F9D58",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

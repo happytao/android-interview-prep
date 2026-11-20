@@ -1,0 +1,5 @@
+{
+  "name": "NDK、多媒体、图像处理与 BLE 蓝牙",
+  "description": "JNI 与 CMake、MediaCodec/ExoPlayer/MediaStore 媒体加载、高斯模糊与图形 API、BLE GATT",
+  "icon": "AudioWaveform"
+}

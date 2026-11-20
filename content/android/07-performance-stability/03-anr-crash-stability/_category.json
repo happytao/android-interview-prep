@@ -1,0 +1,4 @@
+{
+  "name": "崩溃、ANR 与线上稳定性闭环",
+  "description": "ANR 阈值与 traces.txt、ApplicationExitInfo、Java/Native Crash 捕获与熔断闭环"
+}

@@ -1,0 +1,4 @@
+{
+  "name": "模块化路由与 WebView / JSBridge",
+  "description": "SPI 与 AGP 8 AsmClassVisitorFactory 路由、WebView 优化与 JSBridge 双向安全通信"
+}

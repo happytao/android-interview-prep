@@ -1,0 +1,4 @@
+{
+  "name": "图片加载库（Glide / Coil）与 Bitmap 内存",
+  "description": "Glide 生命周期绑定与三级缓存结构、Bitmap 内存公式、采样复用与 Coil 对比"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "android",
+  "name": "Android 开发",
+  "tagline": "面向 2–5 年中级工程师：原理拆解、机制图解与高保真自测",
+  "status": "active",
+  "order": 1,
+  "icon": "Smartphone",
+  "accent": {
+    "light": "#0F9D58",
+    "dark": "#34D399"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "devops",
+  "name": "运维与云原生",
+  "tagline": "远期规划：Linux 内核、容器与 K8s 编排、CI/CD 与可观测性",
+  "status": "planned",
+  "order": 4,
+  "icon": "Terminal",
+  "accent": {
+    "light": "#0D9488",
+    "dark": "#2DD4BF"
+  }
+}

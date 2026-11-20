@@ -1,0 +1,4 @@
+{
+  "name": "Service 与 BroadcastReceiver",
+  "description": "Service 混合绑定与前台服务合规、广播队列与进程内通信替代"
+}

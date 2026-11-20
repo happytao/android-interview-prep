@@ -1,0 +1,4 @@
+{
+  "name": "Handler 消息机制与异步调度",
+  "description": "MessageQueue 单链表、epoll 休眠唤醒、同步屏障、ThreadLocal 与 IdleHandler"
+}

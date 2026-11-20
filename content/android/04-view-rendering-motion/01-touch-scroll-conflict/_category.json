@@ -1,0 +1,4 @@
+{
+  "name": "事件分发、滑动冲突与嵌套联动",
+  "description": "U 型分发链路、横竖滑动冲突处理、NestedScrollView 避坑与 CoordinatorLayout Behavior"
+}

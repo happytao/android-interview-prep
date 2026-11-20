@@ -1,0 +1,4 @@
+{
+  "name": "OkHttp、Okio 与 Retrofit 核心机制",
+  "description": "五大拦截器责任链、连接池与调度、Okio Segment 零拷贝与 Retrofit 动态代理"
+}

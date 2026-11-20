@@ -1,0 +1,4 @@
+{
+  "name": "Kotlin 协程与挂起原理",
+  "description": "CPS 状态机、结构化并发、调度器切换与 Flow 背压采集"
+}

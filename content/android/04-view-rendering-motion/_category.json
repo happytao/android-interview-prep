@@ -1,0 +1,5 @@
+{
+  "name": "View 渲染、事件分发、滑动与动画",
+  "description": "触摸分发 U 型链路、横竖滑动冲突与 NestedScrollView/CoordinatorLayout、VSync 与 RecyclerView",
+  "icon": "Sparkles"
+}

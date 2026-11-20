@@ -1,0 +1,5 @@
+{
+  "name": "Android 四大组件与生命周期",
+  "description": "Activity 交错时序与任务栈、冷启动全链路、Service 后台合规、Provider 与 Fragment",
+  "icon": "Layers"
+}

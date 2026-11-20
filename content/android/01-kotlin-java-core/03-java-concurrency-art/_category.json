@@ -1,0 +1,4 @@
+{
+  "name": "Java 并发、容器与 ART 基础",
+  "description": "HotSpot/ART 锁机制、AQS、线程池、容器对比与 ART 并发垃圾回收"
+}

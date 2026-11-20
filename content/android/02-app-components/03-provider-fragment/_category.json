@@ -1,0 +1,4 @@
+{
+  "name": "ContentProvider 与 Fragment 高频机制",
+  "description": "CursorWindow 跨进程共享、App Startup 合并、Fragment 懒加载与状态丢失"
+}

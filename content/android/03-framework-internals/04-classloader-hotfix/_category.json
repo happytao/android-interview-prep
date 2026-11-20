@@ -1,0 +1,4 @@
+{
+  "name": "类加载机制与热修复原理",
+  "description": "双亲委派与 MultiDex 加载链路、dexElements 插桩与热修复方案权衡"
+}

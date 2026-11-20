@@ -1,0 +1,4 @@
+{
+  "name": "View 绘制流程与屏幕刷新原理",
+  "description": "performTraversals、MeasureSpec 合成、invalidate vs requestLayout 与 VSync 双缓冲"
+}

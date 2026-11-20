@@ -1,0 +1,4 @@
+{
+  "name": "Room、SQLite、Navigation 与 WorkManager",
+  "description": "Room 升级迁移、SQLite ACID 事务与 WAL 锁模式、Navigation 多返回栈与 WorkManager"
+}

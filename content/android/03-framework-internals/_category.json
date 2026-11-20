@@ -1,0 +1,5 @@
+{
+  "name": "Android Framework 核心机制",
+  "description": "Handler/epoll 休眠唤醒、Binder mmap 一次拷贝、Window 体系与 ClassLoader 热修复",
+  "icon": "Workflow"
+}

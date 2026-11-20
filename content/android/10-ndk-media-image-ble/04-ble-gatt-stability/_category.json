@@ -1,0 +1,4 @@
+{
+  "name": "蓝牙 BLE 核心原理与稳定性实战",
+  "description": "BLE GATT 服务/特征架构与状态机、MTU 分包、GATT 133 与串行队列治理、Android 12+ 权限"
+}

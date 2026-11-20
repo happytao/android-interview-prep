@@ -1,0 +1,4 @@
+{
+  "name": "NDK / JNI 与 C++ 跨层基础",
+  "description": "JNI 静态/动态注册、JNIEnv 线程绑定与局部/全局引用管理、CMake 与 .so 排查"
+}
