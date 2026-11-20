@@ -19,8 +19,8 @@ references:
     url: https://square.github.io/okio/
     type: official
     verifiedAt: "2026-11-20"
-  - title: Square Okio - Timeout & AsyncTimeout
-    url: https://square.github.io/okio/timeout/
+  - title: Square Okio - Recipes & Timeout Handling
+    url: https://square.github.io/okio/recipes/
     type: official
     verifiedAt: "2026-11-20"
 updatedAt: "2026-11-20"

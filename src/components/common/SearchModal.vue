@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ArrowRight, Search, Sparkles, X } from 'lucide-vue-next'
-import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useScrollLock } from '@/composables/useScrollLock'
 import { useSearch, type SearchHit } from '@/composables/useSearch'
 import { allDomains, getDomainFlatQuestions } from '@/domains/registry'
 import { useStudyStore } from '@/stores/studyStore'
@@ -17,6 +18,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
 }>()
+
+useScrollLock(toRef(props, 'open'))
 
 const router = useRouter()
 const studyStore = useStudyStore()
@@ -36,10 +39,10 @@ const defaultSuggestions = computed(() => {
   const list = getDomainFlatQuestions(
     domainFilter.value === 'all' ? props.activeDomain : domainFilter.value,
   )
-  return list
-    .filter((q) => priorityFilter.value === 'all' || q.priority === priorityFilter.value)
-    .filter((q) => q.priority === 'must-know')
-    .slice(0, 8)
+  if (priorityFilter.value === 'all') {
+    return list.filter((q) => q.priority === 'must-know').slice(0, 8)
+  }
+  return list.filter((q) => q.priority === priorityFilter.value).slice(0, 10)
 })
 
 const fragments = computed(() => extractHighlightFragments(query.value))
@@ -59,23 +62,31 @@ function splitHighlighted(text: string): Array<{ text: string; hit: boolean }> {
 }
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchGen = 0
 
 const runSearch = async () => {
   const trimmed = query.value.trim()
+  const gen = ++searchGen
   if (!trimmed) {
     hits.value = []
     activeIndex.value = 0
+    isSearching.value = false
     return
   }
   isSearching.value = true
   try {
-    hits.value = await searchQuestions(trimmed, {
+    const results = await searchQuestions(trimmed, {
       domain: domainFilter.value,
       priority: priorityFilter.value,
     })
-    activeIndex.value = 0
+    if (gen === searchGen) {
+      hits.value = results
+      activeIndex.value = 0
+    }
   } finally {
-    isSearching.value = false
+    if (gen === searchGen) {
+      isSearching.value = false
+    }
   }
 }
 
@@ -89,9 +100,6 @@ watch([query, domainFilter, priorityFilter], () => {
 watch(
   () => props.open,
   async (isOpen) => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.style.overflow = isOpen ? 'hidden' : ''
-    }
     if (isOpen) {
       void warmup()
       await nextTick()
@@ -102,9 +110,6 @@ watch(
 
 onUnmounted(() => {
   if (searchTimer) clearTimeout(searchTimer)
-  if (typeof document !== 'undefined') {
-    document.documentElement.style.overflow = ''
-  }
 })
 
 const visibleItems = computed(() =>
@@ -220,10 +225,11 @@ const onKeydown = (e: KeyboardEvent) => {
                 { value: 'all', label: '不限级别' },
                 { value: 'must-know', label: '高频必考' },
                 { value: 'core', label: '核心常考' },
+                { value: 'bonus', label: '中级加分' },
               ]"
               :key="opt.value"
               type="button"
-              class="rounded-md px-2 py-1 font-medium transition"
+              class="shrink-0 whitespace-nowrap rounded-md px-2 py-1 font-medium transition"
               :class="
                 priorityFilter === opt.value
                   ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs'
@@ -243,7 +249,7 @@ const onKeydown = (e: KeyboardEvent) => {
             class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-muted)]"
           >
             <Sparkles class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
-            <span>高频必考直达（直接输入关键词过滤全部 {{ visibleItems.length ? '' : '' }}题目）</span>
+            <span>{{ priorityFilter === 'all' ? '高频必考直达' : '按重要度直达' }}（直接输入关键词过滤全部题目）</span>
           </div>
 
           <div

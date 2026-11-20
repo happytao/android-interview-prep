@@ -101,7 +101,7 @@ const themeLabel = computed(() => {
         </button>
 
         <RouterLink
-          to="/mock"
+          :to="{ path: '/mock', query: { domain: props.activeDomain } }"
           class="inline-flex h-9 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs font-medium text-[var(--text-primary)] transition hover:border-[var(--domain-accent)]"
           title="模拟抽题与今日待复习"
         >

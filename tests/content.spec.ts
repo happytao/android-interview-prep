@@ -224,13 +224,18 @@ describe('full question bank content integrity', () => {
             ).toBe(true)
           }
 
-          // 5. Reject hotlinked third-party images and unparsed ** bold delimiters outside backticks
+          // 5. Reject hotlinked third-party images, raw LaTeX $...$, and unparsed ** delimiters outside backticks
           const nonCodeText = nonCodeLines.join('\n')
           const strippedInline = nonCodeText.replace(/`[^`\n]+`/g, '')
           const imgMatch = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)|<img\s+[^>]*src\s*=\s*["']?(https?:\/\/[^"'\s>]+)/i.exec(
             strippedInline,
           )
           expect(imgMatch, `Forbidden external image hotlink found in ${fullPath}`).toBeNull()
+
+          expect(
+            /\$[^$\n]+\$/.test(strippedInline),
+            `Unrendered raw LaTeX $...$ math found in ${fullPath}`,
+          ).toBe(false)
 
           const renderedNoCode = plainMd
             .render(nonCodeText)

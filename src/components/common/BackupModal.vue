@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Check, Copy, Download, Globe, RotateCcw, Upload, X } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { ref, toRef, watch } from 'vue'
+import { useScrollLock } from '@/composables/useScrollLock'
 import type { ImportParseResult } from '@/schemas/content'
 import { useStudyStore } from '@/stores/studyStore'
 
@@ -11,6 +12,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
 }>()
+
+useScrollLock(toRef(props, 'open'))
 
 const studyStore = useStudyStore()
 const copied = ref(false)
@@ -23,9 +26,6 @@ const confirmReset = ref(false)
 watch(
   () => props.open,
   (isOpen) => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.style.overflow = isOpen ? 'hidden' : ''
-    }
     if (!isOpen) {
       importPreview.value = null
       importError.value = null

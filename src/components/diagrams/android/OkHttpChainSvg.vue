@@ -63,7 +63,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
   >
     <svg
       viewBox="0 0 640 280"
-      class="mx-auto w-full max-w-[640px]"
+      class="mx-auto w-full min-w-[540px] max-w-[640px]"
       role="img"
       aria-label="OkHttp 拦截器责任链流程图"
     >
@@ -95,7 +95,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="80" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         App 拦截器
       </text>
-      <text x="80" y="82" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="80" y="82" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         addInterceptor()
       </text>
 
@@ -112,7 +112,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="241" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         1. RetryFollowUp
       </text>
-      <text x="241" y="82" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="241" y="82" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         重试与重定向
       </text>
 
@@ -129,7 +129,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="400" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         2. Bridge
       </text>
-      <text x="400" y="82" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="400" y="82" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         Cookie/Header/Gzip
       </text>
 
@@ -146,7 +146,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="557" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         3. Cache
       </text>
-      <text x="557" y="82" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="557" y="82" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         HTTP 缓存读写
       </text>
 
@@ -164,7 +164,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="517" y="204" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         4. ConnectInterceptor
       </text>
-      <text x="517" y="226" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="517" y="226" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         连接池复用 / 建立 Socket+TLS
       </text>
 
@@ -181,7 +181,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="295" y="204" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         Network 拦截器
       </text>
-      <text x="295" y="226" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="295" y="226" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         每次真实网络调用均触发
       </text>
 
@@ -198,7 +198,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="97" y="204" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">
         5. CallServer
       </text>
-      <text x="97" y="226" text-anchor="middle" font-size="11" fill="var(--text-secondary)">
+      <text x="97" y="226" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         Okio 读写 HTTP 报文
       </text>
 

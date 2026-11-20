@@ -15,7 +15,12 @@ export function loadCompiledQuestion(sourcePath: string): Promise<CompiledQuesti
     return Promise.reject(new Error(`Compiled question loader not found for "${sourcePath}"`))
   }
 
-  const promise = loader().then((mod) => mod.default)
+  const promise = loader()
+    .then((mod) => mod.default)
+    .catch((err) => {
+      cache.delete(sourcePath)
+      throw err
+    })
   cache.set(sourcePath, promise)
   return promise
 }

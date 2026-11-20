@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next'
-import { onUnmounted, watch } from 'vue'
+import { onUnmounted, toRef, watch } from 'vue'
+import { useScrollLock } from '@/composables/useScrollLock'
 import type { CategoryNode, QuestionSummary } from '@/types/interview'
 import CategoryTree from './CategoryTree.vue'
 
@@ -18,19 +19,26 @@ const emit = defineEmits<{
 }>()
 
 const close = () => emit('update:open', false)
+useScrollLock(toRef(props, 'open'))
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && props.open) {
+    close()
+  }
+}
 
 watch(
   () => props.open,
   (isOpen) => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.style.overflow = isOpen ? 'hidden' : ''
-    }
+    if (typeof window === 'undefined') return
+    if (isOpen) window.addEventListener('keydown', onKeydown)
+    else window.removeEventListener('keydown', onKeydown)
   },
 )
 
 onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.documentElement.style.overflow = ''
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', onKeydown)
   }
 })
 </script>

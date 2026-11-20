@@ -53,7 +53,7 @@ async function checkOne(url) {
       signal: controller.signal,
       headers: { 'User-Agent': 'TechInterviewPrepLinkChecker/1.0' },
     })
-    if (res.status === 405 || res.status === 403 || res.status === 400) {
+    if (res.status === 405 || res.status === 403 || res.status === 400 || res.status === 404 || res.status >= 500) {
       res = await fetch(url, {
         method: 'GET',
         redirect: 'follow',

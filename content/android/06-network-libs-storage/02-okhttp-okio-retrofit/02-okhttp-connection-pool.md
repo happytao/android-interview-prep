@@ -15,12 +15,12 @@ keywords:
   - HTTP/2 多路复用流共享
   - OkHttpClient 单例复用原则
 references:
-  - title: Square OkHttp - ConnectionPool & Pooling
-    url: https://square.github.io/okhttp/5.x/okhttp/okhttp3/-connection-pool/index.html
+  - title: Square OkHttp - Connections & Pooling
+    url: https://square.github.io/okhttp/features/connections/
     type: official
     verifiedAt: "2026-11-20"
-  - title: Square OkHttp - Dispatcher
-    url: https://square.github.io/okhttp/5.x/okhttp/okhttp3/-dispatcher/index.html
+  - title: Square OkHttp - Calls & Dispatcher
+    url: https://square.github.io/okhttp/features/calls/
     type: official
     verifiedAt: "2026-11-20"
 updatedAt: "2026-11-20"

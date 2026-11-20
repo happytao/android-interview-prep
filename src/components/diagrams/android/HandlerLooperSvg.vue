@@ -63,7 +63,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
   >
     <svg
       viewBox="0 0 640 300"
-      class="mx-auto w-full max-w-[640px]"
+      class="mx-auto w-full min-w-[540px] max-w-[640px]"
       role="img"
       aria-label="Handler Looper MessageQueue 与 epoll 交互图"
     >

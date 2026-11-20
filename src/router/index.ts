@@ -1,11 +1,14 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
-import { getDomainManifest } from '@/domains/registry'
+import { allDomains, getDomainManifest } from '@/domains/registry'
 
 const HomeView = () => import('@/views/HomeView.vue')
 const QuestionView = () => import('@/views/QuestionView.vue')
 const MockDrillView = () => import('@/views/MockDrillView.vue')
 const PlannedDomainView = () => import('@/views/PlannedDomainView.vue')
 const NotFoundView = () => import('@/views/NotFoundView.vue')
+
+const primaryActiveDomainId = () =>
+  allDomains.find((d) => d.config.status === 'active')?.config.id ?? allDomains[0]?.config.id ?? 'android'
 
 const history =
   import.meta.env.VITE_ROUTER_MODE === 'hash'
@@ -19,7 +22,7 @@ export const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      props: { domainId: 'android' },
+      props: () => ({ domainId: primaryActiveDomainId() }),
     },
     {
       path: '/mock',
@@ -41,7 +44,7 @@ export const router = createRouter({
         }
         return true
       },
-      props: (route) => ({ domainId: String(route.params.domain ?? 'android') }),
+      props: (route) => ({ domainId: String(route.params.domain ?? primaryActiveDomainId()) }),
     },
     {
       path: '/:domain/planned',
@@ -53,8 +56,19 @@ export const router = createRouter({
       path: '/:domain/:slug',
       name: 'question',
       component: QuestionView,
+      beforeEnter: (to) => {
+        const domainId = String(to.params.domain ?? '')
+        const manifest = getDomainManifest(domainId)
+        if (!manifest) {
+          return { name: 'not-found' }
+        }
+        if (manifest.config.status === 'planned') {
+          return { name: 'planned-domain', params: { domain: domainId } }
+        }
+        return true
+      },
       props: (route) => ({
-        domainId: String(route.params.domain ?? 'android'),
+        domainId: String(route.params.domain ?? primaryActiveDomainId()),
         slug: String(route.params.slug ?? ''),
       }),
     },
@@ -67,7 +81,10 @@ export const router = createRouter({
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) return savedPosition
     if (to.hash) {
-      return { el: to.hash, top: 88, behavior: 'smooth' }
+      const reduced =
+        typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      return { el: to.hash, top: 88, behavior: reduced ? 'auto' : 'smooth' }
     }
     return { top: 0 }
   },

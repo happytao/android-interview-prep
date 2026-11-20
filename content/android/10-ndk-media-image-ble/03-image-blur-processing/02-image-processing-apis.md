@@ -43,11 +43,11 @@ updatedAt: "2026-11-20"
 - **正确做法**：在绘制混合区域前先调用 **`canvas.saveLayer(...)`**（切出一块独立干净透明的离屏缓冲 Offscreen Buffer），先画圆形蒙版（DST）→ 给 Paint 设 `SRC_IN` 再画原图（SRC）→ 最后 `canvas.restoreToCount(saved)` 把完美圆角合回主画布；如果只是纯矩形圆角图片裁剪，更省显存的做法是直接用 **`BitmapShader`** 给 Paint 贴纹理画圆或直接 **`ViewOutlineProvider`** 硬件裁剪！
 
 ### 2. `Matrix` 中 `set` / `pre` / `post` 的致命顺序陷阱
-矩阵乘法不满足交换律！记作当前变换矩阵为 $M$：
+矩阵乘法不满足交换律！记作当前变换矩阵为 `M`：
 - `setTranslate`：**直接清空重置**之前所有变换（连续调两次 `set*` 前一次直接作废！）；
-- **`preConcat(T)`**：$M' = M \times T$（按坐标系变换理解等于**先应用 $T$ 再应用原有 $M$**，最适合以图形自身局部中心绕轴旋转缩放）；
-- **`postConcat(T)`**：$M' = T \times M$（按操作直觉理解等于**在现有结果基础上整体再追加一次屏幕坐标系平移/缩放 $T$**）。
-例如手势双指缩放“以手指双指中心 $(px, py)$ 放大图片”，写法是先 `postTranslate(-px, -py)` → `postScale(s, s)` → `postTranslate(px, py)`（或直接用自带中心点参数的 `postScale(s, s, px, py)`）。
+- **`preConcat(T)`**：`M' = M × T`（按坐标系变换理解等于**先应用 `T` 再应用原有 `M`**，最适合以图形自身局部中心绕轴旋转缩放）；
+- **`postConcat(T)`**：`M' = T × M`（按操作直觉理解等于**在现有结果基础上整体再追加一次屏幕坐标系平移/缩放 `T`**）。
+例如手势双指缩放“以手指双指中心 `(px, py)` 放大图片”，写法是先 `postTranslate(-px, -py)` → `postScale(s, s)` → `postTranslate(px, py)`（或直接用自带中心点参数的 `postScale(s, s, px, py)`）。
 
 ## 图解流程
 

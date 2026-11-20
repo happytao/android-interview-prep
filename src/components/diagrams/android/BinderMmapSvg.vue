@@ -62,8 +62,8 @@ const isActive = (id: string) => activeHighlights.value.has(id)
     @select-step="setStep"
   >
     <svg
-      viewBox="0 0 640 300"
-      class="mx-auto w-full max-w-[640px]"
+      viewBox="0 0 640 306"
+      class="mx-auto w-full min-w-[540px] max-w-[640px]"
       role="img"
       aria-label="Binder mmap 一次拷贝内存映射图"
     >
@@ -174,7 +174,9 @@ const isActive = (id: string) => activeHighlights.value.has(id)
         stroke-dasharray="5 4"
         :marker-end="`url(#${arrowId})`"
       />
-      <text x="456" y="254" font-size="12" fill="var(--text-secondary)">mmap 同页映射（0 拷贝）</text>
+      <text x="528" y="284" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
+        mmap 同页映射 (0 拷贝)
+      </text>
     </svg>
   </DiagramShell>
 </template>

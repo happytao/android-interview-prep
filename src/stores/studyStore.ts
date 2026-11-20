@@ -32,12 +32,20 @@ function defaultState(): StudyProgressV1 {
 }
 
 function loadFromStorage(): StudyProgressV1 {
+  let raw: string | null = null
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultState()
     const parsed = parseStudyProgressImport(raw, validQuestionIds, aliasToIdMap)
     return parsed.progress
   } catch {
+    if (raw) {
+      try {
+        localStorage.setItem(`${STORAGE_KEY}-corrupt-backup`, raw)
+      } catch {
+        // Ignore storage quota issues when quarantining unrecognized state
+      }
+    }
     return defaultState()
   }
 }
@@ -215,7 +223,9 @@ export const useStudyStore = defineStore('study', () => {
     const nextRecords: Record<string, StudyRecord> = { ...state.value.records }
     for (const [id, rec] of Object.entries(parsed.progress.records)) {
       const existing = nextRecords[id]
-      if (!existing || Date.parse(rec.updatedAt) >= Date.parse(existing.updatedAt)) {
+      const recMs = Date.parse(rec.updatedAt)
+      const existingMs = existing ? Date.parse(existing.updatedAt) : Number.NaN
+      if (!existing || Number.isNaN(existingMs) || (!Number.isNaN(recMs) && recMs >= existingMs)) {
         nextRecords[id] = rec
       }
     }

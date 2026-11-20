@@ -15,8 +15,8 @@ keywords:
   - volatile 内存屏障
   - 可见性与有序性
 references:
-  - title: Android Source - ART Locking & Monitors
-    url: https://source.android.com/docs/core/runtime/art-ti
+  - title: Android Source - Android Runtime (ART) and Dalvik
+    url: https://source.android.com/docs/core/runtime
     type: aosp
     verifiedAt: "2026-11-20"
   - title: Kotlin/Java Concurrency - Memory Model & Coroutines

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PencilLine } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { onUnmounted, ref, watch } from 'vue'
 import { useStudyStore } from '@/stores/studyStore'
 
 const props = defineProps<{
@@ -11,20 +11,56 @@ const studyStore = useStudyStore()
 const draft = ref(studyStore.getNote(props.questionId))
 const savedHint = ref(false)
 let timer: ReturnType<typeof setTimeout> | null = null
+let dirtyQuestionId: string | null = null
+
+const flushPendingSave = () => {
+  if (timer) {
+    clearTimeout(timer)
+    timer = null
+  }
+  if (dirtyQuestionId !== null) {
+    studyStore.setNote(dirtyQuestionId, draft.value)
+    dirtyQuestionId = null
+  }
+}
 
 watch(
   () => props.questionId,
-  (newId) => {
+  (newId, oldId) => {
+    if (oldId && dirtyQuestionId === oldId) {
+      flushPendingSave()
+    }
     draft.value = studyStore.getNote(newId)
     savedHint.value = false
   },
 )
 
+watch(
+  () => studyStore.getNote(props.questionId),
+  (storeNote) => {
+    if (dirtyQuestionId !== props.questionId && draft.value !== storeNote) {
+      draft.value = storeNote
+      savedHint.value = false
+    }
+  },
+)
+
+onUnmounted(() => {
+  flushPendingSave()
+})
+
 const onInput = () => {
+  const targetId = props.questionId
+  dirtyQuestionId = targetId
+  savedHint.value = false
   if (timer) clearTimeout(timer)
   timer = setTimeout(() => {
-    studyStore.setNote(props.questionId, draft.value)
-    savedHint.value = true
+    timer = null
+    if (dirtyQuestionId === targetId) {
+      studyStore.setNote(targetId, draft.value)
+      dirtyQuestionId = null
+      savedHint.value = true
+    }
   }, 280)
 }
 </script>

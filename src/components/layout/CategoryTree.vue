@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Bookmark, ChevronDown, ChevronRight } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useStudyStore } from '@/stores/studyStore'
 import type { CategoryNode, QuestionSummary } from '@/types/interview'
 
@@ -17,6 +17,7 @@ const emit = defineEmits<{
 const studyStore = useStudyStore()
 const expandedL1 = ref<Set<string>>(new Set())
 const filterMode = ref<'all' | 'must-know' | 'reviewing' | 'bookmarked'>('all')
+const dueSet = computed(() => new Set(studyStore.dueReviewIds))
 
 // Auto-expand L1 containing activeSlug (or first L1 by default)
 watch(
@@ -48,9 +49,14 @@ const toggleL1 = (id: string) => {
 const matchesFilter = (q: QuestionSummary): boolean => {
   if (filterMode.value === 'all') return true
   if (filterMode.value === 'must-know') return q.priority === 'must-know'
-  if (filterMode.value === 'reviewing') return studyStore.getStatus(q.id) === 'reviewing'
+  if (filterMode.value === 'reviewing') {
+    return studyStore.getStatus(q.id) === 'reviewing' || dueSet.value.has(q.id)
+  }
   return studyStore.isBookmarked(q.id)
 }
+
+const categoryHasMatches = (cat: CategoryNode): boolean =>
+  cat.subcategories.some((sub) => sub.questions.some(matchesFilter))
 
 const categoryStats = (cat: CategoryNode) => {
   let total = 0
@@ -100,8 +106,15 @@ const statusDotClass = (id: string) => {
     <!-- Tree -->
     <nav class="space-y-2" aria-label="知识分类目录">
       <div
+        v-if="!categories.some(categoryHasMatches)"
+        class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-5 text-center text-xs text-[var(--text-muted)]"
+      >
+        当前筛选下暂无匹配题目
+      </div>
+      <div
         v-for="cat in categories"
         :key="cat.id"
+        v-show="categoryHasMatches(cat)"
         class="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]"
       >
         <button

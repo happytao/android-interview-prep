@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Compass, FolderGit2, Home } from 'lucide-vue-next'
 import { computed } from 'vue'
-import { getDomainManifest } from '@/domains/registry'
+import { allDomains, getDomainManifest } from '@/domains/registry'
 
 const props = defineProps<{
   domainId: string
 }>()
 
 const domainManifest = computed(() => getDomainManifest(props.domainId))
+const primaryActiveDomain = computed(() => allDomains.find((d) => d.config.status === 'active') ?? allDomains[0])
 </script>
 
 <template>
@@ -39,11 +40,11 @@ const domainManifest = computed(() => getDomainManifest(props.domainId))
       </div>
 
       <RouterLink
-        to="/android"
+        :to="primaryActiveDomain ? `/${primaryActiveDomain.config.id}` : '/'"
         class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--domain-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--domain-accent-fg)]"
       >
         <Home class="h-4 w-4" />
-        <span>回到已激活的 Android 题库</span>
+        <span>回到已激活的 {{ primaryActiveDomain?.config.name ?? '' }} 题库</span>
       </RouterLink>
     </div>
   </main>

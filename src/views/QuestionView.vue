@@ -40,11 +40,15 @@ const compiled = ref<CompiledQuestion | null>(null)
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 const scrollProgress = ref(0)
+let loadGen = 0
 
 const domainManifest = computed(() => getDomainManifest(props.domainId))
 
 const matchResult = computed(() => findQuestionBySlugOrAlias(props.domainId, props.slug))
 const question = computed(() => matchResult.value?.question ?? null)
+const isSelfTestCollapsed = computed(() =>
+  Boolean(question.value && studyStore.state.selfTestMode && !studyStore.isRevealed(question.value.id)),
+)
 
 const adjacent = computed(() => {
   if (!question.value) return { prev: null, next: null, index: -1, total: 0 }
@@ -52,6 +56,7 @@ const adjacent = computed(() => {
 })
 
 const loadQuestion = async () => {
+  const currentGen = ++loadGen
   if (!matchResult.value) {
     isLoading.value = false
     compiled.value = null
@@ -72,11 +77,16 @@ const loadQuestion = async () => {
   isLoading.value = true
   loadError.value = null
   try {
-    compiled.value = await loadCompiledQuestion(target.sourcePath)
+    const loaded = await loadCompiledQuestion(target.sourcePath)
+    if (currentGen !== loadGen) return
+    compiled.value = loaded
   } catch (err) {
+    if (currentGen !== loadGen) return
     loadError.value = err instanceof Error ? err.message : '题目加载失败'
   } finally {
-    isLoading.value = false
+    if (currentGen === loadGen) {
+      isLoading.value = false
+    }
   }
 }
 
@@ -192,13 +202,16 @@ const setStudyStatus = (status: StudyStatus) => {
             <h1 class="mt-3 text-xl leading-snug font-extrabold text-[var(--text-primary)] sm:text-2xl">
               {{ question.title }}
             </h1>
-            <p class="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+            <p
+              v-if="!isSelfTestCollapsed"
+              class="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]"
+            >
               {{ question.summary }}
             </p>
 
             <!-- Keywords Strip (hidden when Self-Test mode collapses answer to avoid spoiling hints) -->
             <div
-              v-if="!(studyStore.state.selfTestMode && !studyStore.isRevealed(question.id))"
+              v-if="!isSelfTestCollapsed"
               class="mt-3.5 flex flex-wrap items-center gap-1.5"
             >
               <Sparkles class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
@@ -275,7 +288,7 @@ const setStudyStatus = (status: StudyStatus) => {
             class="mt-6"
           >
             <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs sm:p-7">
-              <QuestionBody :blocks="compiled.blocks" :title="question.title" />
+              <QuestionBody :key="compiled.id" :blocks="compiled.blocks" :title="question.title" />
               <ReferenceCards :references="compiled.references" />
             </div>
           </SelfTestPanel>
@@ -320,7 +333,7 @@ const setStudyStatus = (status: StudyStatus) => {
       <aside class="hidden w-56 shrink-0 xl:block">
         <div class="sticky top-20 space-y-4">
           <div
-            v-if="compiled && compiled.toc.length > 0"
+            v-if="!isSelfTestCollapsed && compiled && compiled.toc.length > 0"
             class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4"
           >
             <div class="text-xs font-bold tracking-wide text-[var(--text-primary)]">本页大纲</div>

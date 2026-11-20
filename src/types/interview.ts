@@ -46,7 +46,6 @@ export interface QuestionSummary {
   keywords: string[]
   diagram?: string
   hasMermaid: boolean
-  references: ReferenceItem[]
   updatedAt: string
   sourcePath: string
 }
@@ -78,7 +77,6 @@ export interface DomainManifest {
 
 export interface QuestionManifest {
   domains: DomainManifest[]
-  questionsById: Record<string, QuestionSummary>
 }
 
 export interface TocHeading {

@@ -63,7 +63,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
   >
     <svg
       viewBox="0 0 640 290"
-      class="mx-auto w-full max-w-[640px]"
+      class="mx-auto w-full min-w-[540px] max-w-[640px]"
       role="img"
       aria-label="VSync 与 Choreographer 渲染流水线"
     >
@@ -152,7 +152,7 @@ const isActive = (id: string) => activeHighlights.value.has(id)
       <text x="478" y="228" text-anchor="middle" font-size="12" fill="var(--text-secondary)">
         GraphicBuffer 双/三缓冲轮转
       </text>
-      <text x="478" y="246" text-anchor="middle" font-size="11" fill="var(--diagram-muted)">
+      <text x="478" y="246" text-anchor="middle" font-size="12" fill="var(--diagram-muted)">
         超时则错过下一次 VSync → 掉帧 Jank
       </text>
 

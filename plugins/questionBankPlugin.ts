@@ -162,7 +162,7 @@ function splitMarkdownSegments(body: string, fileLabel: string): RawSegment[] {
 
     const fenceMatch = /^(```+|~~~+)(.*)$/.exec(trimmed)
     if (fenceMatch) {
-      const marker = fenceMatch[1]!.slice(0, 3)
+      const marker = fenceMatch[1]!
       const info = fenceMatch[2]!.trim().toLowerCase()
       if (info === 'mermaid') {
         flushMarkdown()
@@ -211,10 +211,12 @@ function stripMarkdownToPlainText(markdown: string): string {
 export function questionBankPlugin(): Plugin {
   let rootDir = process.cwd()
   let highlighterPromise: Promise<Highlighter> | null = null
+  let buildPromise: Promise<void> | null = null
   let compiledCache = new Map<string, CompiledQuestion>()
   let cachedManifest: QuestionManifest | null = null
   let cachedSearchIndexJson: string | null = null
   let cachedSources = new Set<string>()
+  let invalidationTimer: ReturnType<typeof setTimeout> | null = null
 
   const getHighlighter = () => {
     if (!highlighterPromise) {
@@ -253,10 +255,10 @@ export function questionBankPlugin(): Plugin {
     md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
       const token = tokens[idx]!
       const href = token.attrGet('href') ?? ''
-      if (href && !href.startsWith('#') && !href.startsWith('https://') && !href.startsWith('http://')) {
+      if (href && !href.startsWith('#') && !href.startsWith('https://')) {
         token.attrSet('href', '#blocked-unsafe-link')
       }
-      if (href.startsWith('https://') || href.startsWith('http://')) {
+      if (href.startsWith('https://')) {
         token.attrSet('target', '_blank')
         token.attrSet('rel', 'noopener noreferrer')
       }
@@ -270,9 +272,9 @@ export function questionBankPlugin(): Plugin {
     md.renderer.rules.image = (tokens, idx, options, env, self) => {
       const token = tokens[idx]!
       const src = token.attrGet('src') ?? ''
-      if (isForbiddenImageUrl(src) || /^https?:\/\//i.test(src)) {
+      if (isForbiddenImageUrl(src) || /^(https?:)?\/\//i.test(src) || /^data:/i.test(src)) {
         throw new Error(
-          `Forbidden external hotlinked image "${src}" in ${fileLabel}. Use local SVG, Mermaid, or self-hosted CC BY 4.0 official figures instead.`,
+          `Forbidden external or data image "${src}" in ${fileLabel}. Use local SVG, Mermaid, or self-hosted CC BY 4.0 official figures instead.`,
         )
       }
       return defaultImage(tokens, idx, options, env, self)
@@ -289,7 +291,7 @@ export function questionBankPlugin(): Plugin {
     absPath: string,
     id: string,
     status: 'draft' | 'published',
-    references: QuestionSummary['references'],
+    references: CompiledQuestion['references'],
     body: string,
     availableDiagrams: Set<string>,
   ): Promise<{ compiled: CompiledQuestion; hasMermaid: boolean; diagramRefs: string[] }> => {
@@ -378,7 +380,7 @@ export function questionBankPlugin(): Plugin {
     const availableDiagrams = discoverAvailableDiagrams(rootDir)
     const nextCache = new Map<string, CompiledQuestion>()
     const nextSources = new Set<string>()
-    const questionsById: Record<string, QuestionSummary> = Object.create(null)
+    const usedIdsGlobal = new Set<string>()
     const domains: DomainManifest[] = []
 
     const miniSearch = new MiniSearch<SearchDocument>(getMiniSearchConfig())
@@ -449,12 +451,21 @@ export function questionBankPlugin(): Plugin {
             const parsed = matter(rawMd)
             const fm = QuestionFrontmatterSchema.parse(parsed.data)
 
+            if (!fm.id.startsWith(`${domainConfig.id}.`)) {
+              throw new Error(
+                `Question id "${fm.id}" in ${absMdPath} must begin with domain prefix "${domainConfig.id}."`,
+              )
+            }
+            if (usedIdsGlobal.has(fm.id)) {
+              throw new Error(`Duplicate global question id "${fm.id}" (${absMdPath})`)
+            }
             if (usedIdsInDomain.has(fm.id)) {
               throw new Error(`Duplicate question id "${fm.id}" in domain "${domainConfig.id}"`)
             }
             if (usedSlugsInDomain.has(qSlug)) {
               throw new Error(`Duplicate question slug "${qSlug}" in domain "${domainConfig.id}"`)
             }
+            usedIdsGlobal.add(fm.id)
             usedIdsInDomain.add(fm.id)
             usedSlugsInDomain.add(qSlug)
 
@@ -500,15 +511,13 @@ export function questionBankPlugin(): Plugin {
               keywords: fm.keywords,
               diagram: fm.diagram,
               hasMermaid,
-              references: fm.references,
               updatedAt: fm.updatedAt,
               sourcePath,
             }
 
             questions.push(summary)
-            questionsById[fm.id] = summary
 
-            const plainExcerpt = stripMarkdownToPlainText(parsed.content).slice(0, 420)
+            const plainExcerpt = stripMarkdownToPlainText(parsed.content).slice(0, 220)
             miniSearch.add({
               id: fm.id,
               domain: domainConfig.id,
@@ -562,13 +571,24 @@ export function questionBankPlugin(): Plugin {
 
     compiledCache = nextCache
     cachedSources = nextSources
-    cachedManifest = { domains, questionsById }
+    cachedManifest = { domains }
     cachedSearchIndexJson = JSON.stringify(miniSearch.toJSON())
+  }
+
+  const ensureBuilt = async () => {
+    if (cachedManifest && cachedSearchIndexJson) return
+    if (!buildPromise) {
+      buildPromise = buildAll().finally(() => {
+        buildPromise = null
+      })
+    }
+    await buildPromise
   }
 
   const invalidateAll = (server?: ViteDevServer) => {
     cachedManifest = null
     cachedSearchIndexJson = null
+    buildPromise = null
     compiledCache.clear()
     if (server) {
       for (const vid of [RESOLVED_MANIFEST_ID, RESOLVED_SEARCH_ID]) {
@@ -596,7 +616,11 @@ export function questionBankPlugin(): Plugin {
       const onFsChange = (filePath: string) => {
         const normalizedPath = normalizeFsKey(filePath)
         if (normalizedPath.startsWith(contentGlob) || normalizedPath.startsWith(diagramsGlob)) {
-          invalidateAll(server)
+          if (invalidationTimer) clearTimeout(invalidationTimer)
+          invalidationTimer = setTimeout(() => {
+            invalidationTimer = null
+            invalidateAll(server)
+          }, 80)
         }
       }
 
@@ -611,18 +635,18 @@ export function questionBankPlugin(): Plugin {
     },
     async load(id) {
       if (id === RESOLVED_MANIFEST_ID) {
-        if (!cachedManifest) await buildAll()
+        await ensureBuilt()
         return `export const manifest = ${JSON.stringify(cachedManifest)};`
       }
-      if (id === RESOLVED_SEARCH_ID) {
-        if (!cachedSearchIndexJson) await buildAll()
+      if (id === VIRTUAL_SEARCH_ID || id === RESOLVED_SEARCH_ID) {
+        await ensureBuilt()
         return `export const searchIndexJson = ${JSON.stringify(cachedSearchIndexJson)};`
       }
 
       const [rawPath, query] = id.split('?')
       if (rawPath && query && rawPath.endsWith('.md') && new URLSearchParams(query).has('compiled')) {
         const fsKey = normalizeFsKey(rawPath)
-        if (!cachedManifest) await buildAll()
+        await ensureBuilt()
         const compiled = compiledCache.get(fsKey)
         if (!compiled) {
           throw new Error(`Compiled question not found for ${fsKey}. Check filename and Zod validation.`)

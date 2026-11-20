@@ -40,7 +40,7 @@ This project is a **personal technical interview preparation web application** b
 - **State Persistence**: Pinia stores for study progress (`unlearned / reviewing / mastered`), bookmarks, personal notes (rendered as safe plain text), and self-test state, persisted in `localStorage` with schema versioning, cross-tab `storage` sync, `navigator.storage?.persist?.()`, and hardened **JSON Export/Import** (file + clipboard, prototype-pollution safe, orphaned-ID reporting).
 - **Styling & Theming**:
   - Tailwind CSS v4 configured with `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));`.
-  - Semantic CSS variables for canvas, surface, text, border, and domain accents; system CJK font stack + self-hosted Latin/Mono woff2 (zero runtime CDN dependencies).
+  - Semantic CSS variables for canvas, surface, text, border, and domain accents; system CJK + Latin/Mono font stack (zero runtime CDN dependencies).
   - **Zero-FOUC Theme Initialization**: An inline `<script>` in `index.html` `<head>` (with `try/catch` around dedicated `localStorage` key) sets `data-theme`, `color-scheme`, and `<meta name="theme-color">` before first paint.
 - **Mobile & Motion Ergonomics**:
   - Mobile-first responsive design (desktop 3-column workspace → tablet drawer → mobile bottom-sheet navigator + sticky bottom action bar with defined z-index stack & safe-area padding).
@@ -64,7 +64,7 @@ This project is a **personal technical interview preparation web application** b
 
 ## 5. Mandatory Workflow & Adversarial Review Gates
 
-This project enforces two mandatory adversarial review gates using **`claude-opus-5-5-high`** before advancing phases:
+This project enforces two mandatory adversarial review gates before advancing phases (`claude-opus-5-5-high` at Gate 1; `claude-opus-5-5-medium` at Gate 2 with `gemini-4-neon-high` / `gemini-4-argon-high` fallback if Opus quota is exhausted):
 
 1. **Gate 1 — Design & Syllabus Review (Before Coding)**:
    - Complete `docs/DESIGN_PLAN.md` and `docs/ANDROID_SYLLABUS.md`.

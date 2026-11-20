@@ -147,32 +147,33 @@ const activeInfo = () => props.steps[props.currentStep] ?? props.steps[0]
     </div>
 
     <DiagramLightbox v-model:open="lightboxOpen" :title="title">
-      <div class="flex w-full max-w-4xl flex-col gap-3">
-        <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-4">
-          <slot />
-        </div>
-        <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[var(--bg-surface-muted)] px-3 py-2 text-xs">
-          <span class="font-medium text-[var(--text-primary)]">
+      <div class="w-full max-w-4xl rounded-xl border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-4">
+        <slot />
+      </div>
+
+      <template #controls>
+        <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="min-w-0 flex-1 font-medium text-[var(--text-primary)]">
             步骤 {{ currentStep + 1 }}/{{ steps.length }}：{{ activeInfo()?.title }} — {{ activeInfo()?.description }}
           </span>
-          <div class="flex items-center gap-1">
+          <div class="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
-              class="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1 text-[var(--text-primary)]"
+              class="min-h-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 py-1 text-[var(--text-primary)]"
               @click="emit('prev')"
             >
               上一步
             </button>
             <button
               type="button"
-              class="rounded bg-[var(--domain-accent)] px-2 py-1 font-medium text-[var(--domain-accent-fg)]"
+              class="min-h-8 rounded-lg bg-[var(--domain-accent)] px-2.5 py-1 font-medium text-[var(--domain-accent-fg)]"
               @click="emit('next')"
             >
               下一步
             </button>
           </div>
         </div>
-      </div>
+      </template>
     </DiagramLightbox>
   </figure>
 </template>

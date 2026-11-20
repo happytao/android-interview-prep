@@ -1,29 +1,51 @@
 # 个人技术面试复习站 · Personal Tech Interview Prep
 
-面向个人高频复习与系统化沉淀的前端技术面试知识库（一期聚焦 **Android 中级开发工程师**，架构原生预留 **前端 / 后端 / 运维 / 网安** 等多领域扩展能力）。
+面向个人高频复习与系统化沉淀的前端技术面试知识库（Phase 1 已完成 **Android 中级开发工程师** 10 大模块 · 34 个二级专题 · 111 题完整上线；架构原生预留 **前端 / 后端 / 运维 / 网安** 等多领域零改代码扩展能力）。
 
-> 当前处于 **Phase 1（方案设计与知识大纲审定阶段）**。依据项目约束，将在方案经 `claude-opus-5-5-high` 对抗审核及用户确认后，进入 Phase 2 前端工程实施。
+## 核心特性（Phase 2 已实施完成）
 
-## 核心特点规划
+- **纯前端静态内容驱动（Git-as-CMS）**：无需后端与数据库，题库以 Markdown + YAML Frontmatter 存放于 [`content/`](./content/)，构建期完成 Zod Schema 校验、Shiki 语法着色（零运行时 Shiki 包）、Markdown 编译与中英文分词索引生成，并按单题粒度懒加载（111 个独立 JS Chunk）。
+- **两级+结构化知识体系**：`领域 (Domain) > 一级分类 (L1) > 二级专题 (L2) > 面试题`，每题统一遵循「面试答题思路 → 核心原理解析 → 图解流程 → 高频追问与关键词 → 延伸参考」五段式标准。
+- **高可读与防盗链安全图解**：
+  - 5 张旗舰主题自适应交互式 SVG 原理图（`HandlerLooperSvg`、`BinderMmapSvg`、`TouchDispatchSvg`、`VsyncPipelineSvg`、`OkHttpChainSvg`）；
+  - 66 张按需懒加载 + 严苛模式（`securityLevel: 'strict'`）Mermaid 流程图 + 全屏触摸缩放灯箱（Lightbox）；
+  - 40 张移动端横向可滚动对比表；禁用第三方防盗链外链图，提供 `developer.android.google.cn` 国内镜像一键切换。
+- **深度复习体验**：支持移动端单手底部导航条 + 抽屉目录、Zero-FOUC 深浅色切换、`Ctrl/Cmd + K` 中英文分词即时检索、**自测折叠遮罩/防剧透关键词提示模式**、Leitner 间隔复习队列、随机模拟抽题（`/mock`）与防原型污染的 JSON 导入/导出备份。
 
-- **纯前端静态内容驱动（Git-as-CMS）**：无需后端与数据库，题库以 Markdown + YAML Frontmatter 形式存放于 `content/`，构建期进行 Schema 校验、Markdown 编译与中文分词索引生成，并按题目粒度懒加载。
-- **两级+结构化知识体系**：`领域 (Domain) > 一级分类 (L1) > 二级专题 (L2) > 面试题`，聚焦**答题思路、核心原理解析、图解流程、高频追问与关键词速记**。
-- **高可读图解体系**：原生深浅色自适应交互式 SVG 核心原理图 + 按需懒加载 Mermaid 流程图 + 全屏缩放灯箱（Lightbox）+ Android Developers / 简中优质博客权威参考外链（拒绝脆弱的第三方防盗链外链图片）。
-- **深度复习体验**：支持移动端单手底部导航、零闪烁（Zero-FOUC）深浅色切换、`Ctrl/Cmd + K` 中英文混合即时检索、**自测遮罩/关键词提示模式**、掌握状态跟踪与 JSON 导入/导出备份。
+## 环境要求与常用指令
+
+环境需求：**Node.js >= 22**（当前工程 `.nvmrc` 为 `24`）+ **pnpm**（`pnpm@12.21.0`）。
+
+```powershell
+# 安装依赖
+pnpm install
+
+# 启动本地热更新开发服务器
+pnpm dev
+
+# 全量类型检查（vue-tsc + tsconfig.node.json）
+pnpm typecheck
+
+# 运行单元与全站 111 题内容完整性校验测试
+pnpm test
+
+# 类型检查 + Vite 静态打包 + dist/404.html SPA 回退生成
+pnpm build
+
+# 本地预览构建产物
+pnpm preview --port 4173 --strictPort
+
+# 一键构建并部署到个人 VPS（使用 rsync 或 scp/ssh）
+./scripts/deploy.ps1 -Server user@your-vps-ip -RemotePath /var/www/interview-prep
+```
 
 ## 文档与 AI 协作框架导航
 
-- [个人建站需求.txt](./个人建站需求.txt) — 原始需求说明
+- [个人建站需求.txt](./个人建站需求.txt) — 原始需求说明（保持原样）
 - [AGENTS.md](./AGENTS.md) — 跨 Agent 核心工程规范与评审门禁
-- [GEMINI.md](./GEMINI.md) — Antigravity / Gemini 工作区规则
-- [CLAUDE.md](./CLAUDE.md) — Claude / Opus 对抗审查角色约定
+- [GEMINI.md](./GEMINI.md) / [CLAUDE.md](./CLAUDE.md) — Agent 工作区角色约定
 - [.agents/skills/](./.agents/skills/) — 项目专属技能（`adversarial-review`、`question-authoring`、`domain-expansion`）
-- [docs/DESIGN_PLAN.md](./docs/DESIGN_PLAN.md) — 完整技术架构、UI/UX 审美、图解方案与实施路线图
-- [docs/ANDROID_SYLLABUS.md](./docs/ANDROID_SYLLABUS.md) — Android 中级工程师两级分类知识大纲（待审定）
-
-## 环境前置说明（Phase 2 实施前）
-
-当前环境已检测到 Git 2.46 与 Python 3.12，尚未检测到 Node.js。进入 Phase 2 前端开发前需准备：
-
-- **Node.js 22 LTS**（推荐使用 `winget install OpenJS.NodeJS.LTS` 或 `fnm` 安装）
-- **pnpm**（可通过 `corepack enable` 启用）
+- [docs/DESIGN_PLAN.md](./docs/DESIGN_PLAN.md) — 完整系统架构、视觉审美、内容管线与部署方案
+- [docs/ANDROID_SYLLABUS.md](./docs/ANDROID_SYLLABUS.md) — Android 中级工程师 10 大模块 111 题完整知识大纲
+- [docs/ADVERSARIAL_REVIEW_PLAN.md](./docs/ADVERSARIAL_REVIEW_PLAN.md) — Gate 1 方案对抗审查与整改归档
+- [docs/ADVERSARIAL_REVIEW_CODE.md](./docs/ADVERSARIAL_REVIEW_CODE.md) — Gate 2 代码与题库对抗审查与整改归档

@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import { ArrowRight, CheckCircle2, HelpCircle, RotateCcw, Shuffle, Sparkles } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import PriorityBadge from '@/components/common/PriorityBadge.vue'
-import { getDomainFlatQuestions, getDomainManifest } from '@/domains/registry'
+import { allDomains, getDomainFlatQuestions, getDomainManifest } from '@/domains/registry'
 import { useStudyStore } from '@/stores/studyStore'
 import type { Priority, QuestionSummary } from '@/types/interview'
 
+const route = useRoute()
 const studyStore = useStudyStore()
-const domainManifest = computed(() => getDomainManifest('android'))
-const allQuestions = computed(() => getDomainFlatQuestions('android'))
+const activeDomains = computed(() => allDomains.filter((d) => d.config.status === 'active'))
+
+const selectedDomainId = ref<string>(
+  (() => {
+    const qDomain = typeof route.query.domain === 'string' ? route.query.domain : ''
+    if (qDomain && activeDomains.value.some((d) => d.config.id === qDomain)) {
+      return qDomain
+    }
+    return activeDomains.value[0]?.config.id ?? allDomains[0]?.config.id ?? 'android'
+  })(),
+)
+
+const domainManifest = computed(() => getDomainManifest(selectedDomainId.value))
+const allQuestions = computed(() => getDomainFlatQuestions(selectedDomainId.value))
 
 const selectedL1 = ref<string>('all')
 const selectedPriority = ref<Priority | 'all'>('all')
@@ -43,6 +57,11 @@ const drawNext = () => {
   showHints.value = false
 }
 
+watch(selectedDomainId, () => {
+  selectedL1.value = 'all'
+  drawNext()
+})
+
 // Pick initial item lazily on first interaction or auto-pick
 if (!currentQuestion.value && allQuestions.value.length > 0) {
   drawNext()
@@ -64,6 +83,23 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
 
     <!-- Filter Controls -->
     <section class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs sm:p-5">
+      <div v-if="activeDomains.length > 1" class="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
+        <span class="font-semibold text-[var(--text-secondary)]">技术领域：</span>
+        <button
+          v-for="d in activeDomains"
+          :key="d.config.id"
+          type="button"
+          class="rounded-lg px-2.5 py-1 font-medium transition"
+          :class="
+            selectedDomainId === d.config.id
+              ? 'bg-[var(--domain-accent)] text-[var(--domain-accent-fg)]'
+              : 'border border-[var(--border-subtle)] bg-[var(--bg-canvas)] text-[var(--text-secondary)]'
+          "
+          @click="selectedDomainId = d.config.id"
+        >
+          {{ d.config.name }}
+        </button>
+      </div>
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <label class="block text-xs">
           <span class="font-semibold text-[var(--text-secondary)]">限定知识模块</span>

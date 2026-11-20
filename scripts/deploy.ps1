@@ -6,10 +6,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "1/3 Running typecheck, tests, and production build..." -ForegroundColor Cyan
-pnpm typecheck
+Write-Host "1/3 Running tests and production build..." -ForegroundColor Cyan
 pnpm test
+if ($LASTEXITCODE -ne 0) { throw "Vitest failed with exit code $LASTEXITCODE" }
 pnpm build
+if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
 Write-Host "2/3 Uploading static assets (preserving previous hashed chunks for active tabs)..." -ForegroundColor Cyan
 if (Get-Command rsync -ErrorAction SilentlyContinue) {

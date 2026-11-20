@@ -10,7 +10,7 @@ import {
   Shuffle,
   Sparkles,
 } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import PriorityBadge from '@/components/common/PriorityBadge.vue'
 import { allDomains, getDomainFlatQuestions, getDomainManifest, getQuestionById } from '@/domains/registry'
 import { useStudyStore } from '@/stores/studyStore'
@@ -27,6 +27,17 @@ const expandedL1Ids = ref<Set<string>>(new Set())
 const domainManifest = computed(() => getDomainManifest(props.domainId) ?? allDomains[0]!)
 const allQuestions = computed(() => getDomainFlatQuestions(domainManifest.value.config.id))
 
+watch(
+  () => domainManifest.value.config.id,
+  () => {
+    expandedL1Ids.value = new Set(
+      domainManifest.value.categories.slice(0, 2).map((cat) => cat.id),
+    )
+    quickFilter.value = 'all'
+  },
+  { immediate: true },
+)
+
 const lastVisitedQuestion = computed(() => {
   const id = studyStore.state.lastVisitedId
   if (!id) return null
@@ -41,6 +52,8 @@ const domainStats = computed(() => {
   let reviewing = 0
   let mustKnow = 0
   let due = 0
+  let bookmarks = 0
+  let notes = 0
   const dueSet = new Set(studyStore.dueReviewIds)
 
   for (const q of allQuestions.value) {
@@ -49,6 +62,8 @@ const domainStats = computed(() => {
     else if (s === 'reviewing') reviewing += 1
     if (q.priority === 'must-know') mustKnow += 1
     if (dueSet.has(q.id)) due += 1
+    if (studyStore.isBookmarked(q.id)) bookmarks += 1
+    if (studyStore.getNote(q.id).trim().length > 0) notes += 1
   }
 
   return {
@@ -57,9 +72,15 @@ const domainStats = computed(() => {
     reviewing,
     mustKnow,
     due,
+    bookmarks,
+    notes,
     percent: allQuestions.value.length ? Math.round((mastered / allQuestions.value.length) * 100) : 0,
   }
 })
+
+const hasMatchedQuestions = computed(() =>
+  domainManifest.value.categories.some((cat) => categoryProgress(cat).matched > 0),
+)
 
 const dueSet = computed(() => new Set(studyStore.dueReviewIds))
 
@@ -92,9 +113,8 @@ function toggleCategory(id: string) {
   }
 }
 
-function isCategoryExpanded(id: string, index: number) {
+function isCategoryExpanded(id: string) {
   if (quickFilter.value !== 'all') return true
-  if (expandedL1Ids.value.size === 0 && index < 2) return true
   return expandedL1Ids.value.has(id)
 }
 </script>
@@ -125,7 +145,7 @@ function isCategoryExpanded(id: string, index: number) {
               class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[var(--domain-accent)] px-4 py-2 text-sm font-semibold text-[var(--domain-accent-fg)] shadow-xs transition hover:opacity-95"
             >
               <PlayCircle class="h-4 w-4" />
-              <span>继续学习：{{ lastVisitedQuestion.title.slice(0, 18) }}…</span>
+              <span>继续学习：{{ lastVisitedQuestion.title.length > 18 ? `${lastVisitedQuestion.title.slice(0, 18)}…` : lastVisitedQuestion.title }}</span>
             </RouterLink>
             <RouterLink
               v-else-if="firstQuestion"
@@ -192,9 +212,9 @@ function isCategoryExpanded(id: string, index: number) {
               <span>我的收藏</span>
             </div>
             <div class="mt-1 font-mono text-xl font-bold text-[var(--text-primary)]">
-              {{ studyStore.stats.bookmarks }}
+              {{ domainStats.bookmarks }}
             </div>
-            <div class="mt-1 text-[11px] text-[var(--text-muted)]">笔记 {{ studyStore.stats.notes }} 条</div>
+            <div class="mt-1 text-[11px] text-[var(--text-muted)]">笔记 {{ domainStats.notes }} 条</div>
           </div>
         </div>
       </div>
@@ -212,7 +232,7 @@ function isCategoryExpanded(id: string, index: number) {
             { id: 'all', label: `全部 (${domainStats.total})` },
             { id: 'must-know', label: `高频必考 (${domainStats.mustKnow})` },
             { id: 'due', label: `今日待复习 (${domainStats.due})` },
-            { id: 'bookmarked', label: `收藏 (${studyStore.stats.bookmarks})` },
+            { id: 'bookmarked', label: `收藏 (${domainStats.bookmarks})` },
           ]"
           :key="tab.id"
           type="button"
@@ -232,7 +252,26 @@ function isCategoryExpanded(id: string, index: number) {
     <!-- L1 -> L2 Knowledge Tree -->
     <section class="mt-4 space-y-4">
       <div
-        v-for="(cat, idx) in domainManifest.categories"
+        v-if="!hasMatchedQuestions"
+        class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 text-center"
+      >
+        <p class="text-sm font-semibold text-[var(--text-primary)]">
+          {{ quickFilter === 'due' ? '今日待复习队列已清空 🎉' : '当前筛选条件暂无收藏或匹配题目' }}
+        </p>
+        <p class="mt-1 text-xs text-[var(--text-secondary)]">
+          在题解页面标记「需复习」或点击「收藏本题」后，对应题目会自动归档到这里。
+        </p>
+        <button
+          type="button"
+          class="mt-4 inline-flex min-h-9 items-center rounded-xl bg-[var(--domain-accent)] px-4 py-1.5 text-xs font-semibold text-[var(--domain-accent-fg)]"
+          @click="quickFilter = 'all'"
+        >
+          查看全部题目
+        </button>
+      </div>
+
+      <div
+        v-for="cat in domainManifest.categories"
         :key="cat.id"
         v-show="categoryProgress(cat).matched > 0"
         class="overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-xs"
@@ -257,12 +296,12 @@ function isCategoryExpanded(id: string, index: number) {
             <p class="mt-1 text-xs text-[var(--text-secondary)]">{{ cat.description }}</p>
           </div>
           <span class="shrink-0 text-xs font-medium text-[var(--domain-accent)]">
-            {{ isCategoryExpanded(cat.id, idx) ? '收起' : '展开' }}
+            {{ isCategoryExpanded(cat.id) ? '收起' : '展开' }}
           </span>
         </button>
 
         <div
-          v-if="isCategoryExpanded(cat.id, idx)"
+          v-if="isCategoryExpanded(cat.id)"
           class="border-t border-[var(--border-subtle)] bg-[var(--bg-canvas)]/45 p-4 sm:p-6"
         >
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">

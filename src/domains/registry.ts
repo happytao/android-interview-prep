@@ -5,15 +5,24 @@ export const questionManifest = manifest
 
 export const allDomains: DomainManifest[] = manifest.domains
 
-export const validQuestionIds = new Set<string>(Object.keys(manifest.questionsById))
-
+const questionsById: Record<string, QuestionSummary> = Object.create(null)
 export const aliasToIdMap = new Map<string, string>()
-for (const q of Object.values(manifest.questionsById)) {
-  for (const alias of q.aliases) {
-    aliasToIdMap.set(alias, q.id)
-    aliasToIdMap.set(`${q.domain}.${alias}`, q.id)
+
+for (const domain of allDomains) {
+  for (const cat of domain.categories) {
+    for (const sub of cat.subcategories) {
+      for (const q of sub.questions) {
+        questionsById[q.id] = q
+        for (const alias of q.aliases) {
+          aliasToIdMap.set(alias, q.id)
+          aliasToIdMap.set(`${q.domain}.${alias}`, q.id)
+        }
+      }
+    }
   }
 }
+
+export const validQuestionIds = new Set<string>(Object.keys(questionsById))
 
 export function getDomainManifest(domainId: string): DomainManifest | undefined {
   return allDomains.find((d) => d.config.id === domainId)
@@ -34,7 +43,7 @@ export function getDomainFlatQuestions(domainId: string): QuestionSummary[] {
 }
 
 export function getQuestionById(id: string): QuestionSummary | undefined {
-  return manifest.questionsById[id]
+  return questionsById[id]
 }
 
 export function findQuestionBySlugOrAlias(

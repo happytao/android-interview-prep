@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Panzoom, { type PanzoomObject } from '@panzoom/panzoom'
 import { RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-vue-next'
-import { nextTick, onUnmounted, ref, watch } from 'vue'
+import { nextTick, onUnmounted, ref, toRef, watch } from 'vue'
+import { useScrollLock } from '@/composables/useScrollLock'
 
 const props = defineProps<{
   open: boolean
@@ -11,6 +12,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
 }>()
+
+useScrollLock(toRef(props, 'open'))
 
 const stageRef = ref<HTMLElement | null>(null)
 let panzoomInstance: PanzoomObject | null = null
@@ -50,13 +53,11 @@ const onKeydown = (e: KeyboardEvent) => {
 watch(
   () => props.open,
   (isOpen) => {
-    if (typeof document === 'undefined') return
+    if (typeof window === 'undefined') return
     if (isOpen) {
-      document.documentElement.style.overflow = 'hidden'
       window.addEventListener('keydown', onKeydown)
       void initPanzoom()
     } else {
-      document.documentElement.style.overflow = ''
       window.removeEventListener('keydown', onKeydown)
       destroyPanzoom()
     }
@@ -64,8 +65,7 @@ watch(
 )
 
 onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.documentElement.style.overflow = ''
+  if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', onKeydown)
   }
   destroyPanzoom()
@@ -135,6 +135,13 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <div
+        v-if="$slots.controls"
+        class="border-t border-white/10 bg-[var(--bg-surface)] px-4 py-2.5 text-[var(--text-primary)]"
+      >
+        <slot name="controls" />
+      </div>
+
       <footer class="bg-black/60 px-4 py-2 text-center text-xs text-white/75">
         支持滚轮 / 双指缩放与拖拽平移，按 Esc 或点击空白处关闭
       </footer>
@@ -144,8 +151,9 @@ onUnmounted(() => {
 
 <style scoped>
 .lightbox-stage :deep(svg) {
+  min-width: 0 !important;
   max-width: 100%;
-  max-height: 62vh;
+  max-height: 60vh;
   height: auto;
   margin-inline: auto;
   display: block;

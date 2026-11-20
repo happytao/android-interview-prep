@@ -122,10 +122,16 @@ onUnmounted(() => {
       <!-- Safe: rendered by Mermaid with securityLevel: 'strict' -->
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div
-        v-else
+        v-else-if="!lightboxOpen"
         class="mermaid-svg-host flex justify-center [&>svg]:h-auto [&>svg]:max-w-full"
         v-html="renderedSvg"
       />
+      <div
+        v-else
+        class="flex h-[200px] items-center justify-center text-xs text-[var(--text-muted)]"
+      >
+        正在全屏灯箱中查看流程图...
+      </div>
     </div>
 
     <DiagramLightbox v-model:open="lightboxOpen" :title="title ?? '机制流程图'">

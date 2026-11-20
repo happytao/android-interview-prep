@@ -4,7 +4,7 @@ const ASCII_RUN_RE = /[a-zA-Z0-9_+#.-]+/g
 export const CJK_STOPWORDS = new Set([
   '的', '了', '在', '是', '和', '与', '中', '对', '及', '或',
   '之', '把', '被', '让', '给', '到', '从', '有', '为', '于',
-  '等', '上', '下', '内', '外', '与', '而', '并', '可', '能',
+  '等', '上', '下', '内', '外', '而', '并', '可', '能',
 ])
 
 function splitAsciiParts(token: string): string[] {
@@ -122,7 +122,7 @@ export interface SearchDocument {
 export function getMiniSearchConfig() {
   return {
     fields: ['title', 'keywordsText', 'categoryLabel', 'summary', 'excerpt'] as (keyof SearchDocument)[],
-    storeFields: ['id', 'domain', 'slug', 'title', 'summary', 'categoryLabel', 'priority'] as (keyof SearchDocument)[],
+    storeFields: ['domain', 'priority'] as (keyof SearchDocument)[],
     tokenize: tokenizeIndex,
     processTerm: (term: string) => term.toLowerCase(),
   }
