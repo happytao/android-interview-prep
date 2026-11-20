@@ -38,21 +38,21 @@ This project mandates adversarial red-team reviews at two gates:
 Instruct `opus-reviewer` to inspect `个人建站需求.txt`, `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, `.agents/skills/*/SKILL.md`, `docs/DESIGN_PLAN.md`, and `docs/ANDROID_SYLLABUS.md`, and stress-test:
 - Completeness against every sentence in `个人建站需求.txt`.
 - Pure-frontend static architecture soundness, multi-domain scalability, and Windows environment readiness (Node.js availability).
-- Vite virtual module + lazy-loading boundary (ensuring initial bundle size stays small as the bank grows across domains).
-- CJK + English MiniSearch tokenization edge cases (`事件分发`, `Handler`, `ANR`, `ViewModel`).
-- Tailwind v4 dark-mode selector mechanics, zero-FOUC script, and SVG/Mermaid theme & ID collision risks.
-- Mobile UX for dense flowcharts, touch targets, self-test mode, and animation restraint (`prefers-reduced-motion`).
+- Vite virtual module + lazy loading boundary (`.md?compiled` typed blocks, Shiki build-time output, initial bundle size).
+- CJK + English MiniSearch tokenization edge cases (`事件分发`, `Handler内存泄漏`, `OkHttp`, single-character queries).
+- Tailwind v4 dark-mode selector mechanics, zero-FOUC script, Mermaid lazy/serialized/visible rendering, SVG `useId()` scoping, and `prefers-reduced-motion`.
+- Mobile UX for dense flowcharts, touch targets, self-test collapse/reveal UX, and `localStorage` backup durability.
 - Mid-level Android syllabus calibration (missing core topics, outdated/over-niche topics, realistic diagram scope).
 - Consistency across `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, and `.agents/skills/*`.
 
 ### Gate 2 — Code & Content Checklist
 Instruct `opus-reviewer` to inspect `src/`, `plugins/`, `content/`, `index.html`, `package.json`, `vite.config.ts`, and test outputs, and stress-test:
 - Type safety, dead code, broken imports, and strict adherence to `AGENTS.md`.
-- XSS & injection risks (`markdown-it` `html: false`, external URL protocol validation, `localStorage` JSON import validation).
+- XSS & injection risks (`markdown-it` `html: false`, `https://` allowlist validation, `localStorage` JSON import prototype-pollution & size checks).
 - Real behavior of dark/light mode toggle, zero-FOUC init, mobile drawer/bottom-sheet/bar, keyboard shortcuts, and diagram zoom lightbox.
-- Mermaid lazy-loading & dynamic re-rendering on route/theme switch without DOM ID collisions.
-- Search accuracy on Chinese phrases, English symbols, and empty/edge queries.
-- Content schema validation and mid-level quality of authored questions/diagrams/links.
+- Mermaid lazy-loading, `IntersectionObserver` reveal gating, serialized queue, and theme switch re-rendering without DOM ID collisions.
+- Search accuracy on Chinese phrases, English symbols, mixed terms, and empty/edge queries.
+- Content schema validation and mid-level technical accuracy of authored questions/diagrams/links.
 
 ## Step 3: Severity Rubric & Resolution Protocol
 
@@ -64,10 +64,11 @@ Require the reviewer to classify every finding:
 
 Verdict must be one of: `PASS`, `PASS WITH REVISIONS`, or `BLOCKED`.
 
-## Step 4: Archive & Remediate
+## Step 4: Archive, Remediate & Gate Enforcement
 
 1. Save the full audit findings and point-by-point resolution table in:
    - `docs/ADVERSARIAL_REVIEW_PLAN.md` (Gate 1)
    - `docs/ADVERSARIAL_REVIEW_CODE.md` (Gate 2)
 2. Apply fixes for all valid `P0`/`P1` (and worthwhile `P2`) findings.
-3. Re-verify (`git status`, automated checks for Gate 2) and commit the review log + fixes cleanly.
+3. Re-verify (`git status`, and automated tests/typecheck/build for Gate 2) and commit the review log + fixes cleanly.
+4. **Gate 1 Mandatory Stop**: Present the revised `docs/DESIGN_PLAN.md`, `docs/ANDROID_SYLLABUS.md`, and `docs/ADVERSARIAL_REVIEW_PLAN.md` to the user and **wait for explicit user approval** before scaffolding or writing any Vue/TS application code.

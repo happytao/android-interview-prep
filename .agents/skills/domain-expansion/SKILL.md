@@ -8,14 +8,14 @@ description: >-
 
 # Domain Expansion Runbook
 
-The site is designed so adding **Frontend**, **Backend**, **Ops/DevOps**, or **Cybersecurity** requires **zero changes** to core layout, search, theming, or progress-tracking logic.
+The site is designed so adding **Frontend**, **Backend**, **Ops/DevOps**, or **Cybersecurity** requires **zero edits** to core UI, routing, search, or registry source files.
 
 ## Step-by-Step Expansion Procedure
 
 1. **Create Domain Content Directory**:
    ```text
    content/<domainId>/
-   ├── domain.config.ts
+   ├── _domain.json
    ├── 01-<l1-category>/
    │   ├── _category.json
    │   └── 01-<l2-subcategory>/
@@ -24,23 +24,23 @@ The site is designed so adding **Frontend**, **Backend**, **Ops/DevOps**, or **C
    ```
    Example `<domainId>` values: `frontend`, `backend`, `devops`, `security`.
 
-2. **Define `domain.config.ts`**:
-   Include:
-   - `id`: unique slug matching folder name (e.g., `'frontend'`).
-   - `name`: display title (e.g., `'前端开发'`).
+2. **Define `_domain.json`**:
+   Include strictly schema-validated fields:
+   - `id`: unique slug matching folder name (e.g., `"frontend"`).
+   - `name`: display title (e.g., `"前端开发"`).
    - `tagline`: short description of target level and scope.
-   - `status`: `'active'` when populated, or `'planned'` for roadmap preview cards.
+   - `status`: `"active"` when populated, or `"planned"` for roadmap preview cards.
    - `order`: sort index in the top domain switcher.
    - `icon`: Lucide icon name.
-   - `accent`: light & dark hex tokens (mapped to `--domain-accent` CSS custom properties).
+   - `accent`: `{ "light": "#2563EB", "dark": "#60A5FA" }` mapped automatically to `--domain-accent` CSS custom properties.
 
-3. **Register in `src/domains/registry.ts`**:
-   Import and add the domain config to the exported domain registry array (or ensure glob auto-discovery picks up `content/*/domain.config.ts`).
+3. **Zero-Code-Edit Auto-Discovery**:
+   The Vite plugin (`plugins/questionBankPlugin.ts`) automatically scans `content/*/_domain.json`, validates with Zod, and publishes every domain into `virtual:question-manifest`. `src/domains/registry.ts` consumes the manifest directly—no manual registration code edits are required.
 
 4. **Add Domain-Specific Interactive Diagrams (Optional)**:
-   Place custom Vue SVG diagrams under `src/components/diagrams/<domainId>/` and export them in the diagram component registry so `:::diagram <Name>` resolves automatically.
+   Place custom Vue SVG components under `src/components/diagrams/<domainId>/<Name>.vue`. They are auto-discovered via `import.meta.glob('/src/components/diagrams/**/*.vue')` with `defineAsyncComponent` so `:::diagram <Name>` resolves lazily.
 
 5. **Verify**:
    - Run `pnpm typecheck` (`vue-tsc --noEmit`).
-   - Run `pnpm test` (`vitest run`) and the content validation script to ensure all frontmatter, L1/L2 category links, and search tokens build cleanly.
-   - Run `pnpm build` and check domain switching, mobile drawer, dark mode accent contrast, and isolated/global search filtering.
+   - Run `pnpm test` (`vitest run`) to verify schema validation, duplicate ID/slug checks, and search tokenization.
+   - Run `pnpm build` and verify domain switching, mobile drawer, dark mode accent contrast, and isolated/global search filtering.
