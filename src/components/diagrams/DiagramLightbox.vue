@@ -26,8 +26,7 @@ const initPanzoom = async () => {
   if (stageRef.value) {
     panzoomInstance = Panzoom(stageRef.value, {
       maxScale: 4,
-      minScale: 0.6,
-      contain: 'outside',
+      minScale: 0.5,
       step: 0.3,
     })
   }
@@ -123,12 +122,15 @@ onUnmounted(() => {
       </header>
 
       <div
-        class="relative flex flex-1 items-center justify-center overflow-hidden p-4 select-none"
+        class="relative flex flex-1 items-center justify-center overflow-hidden p-3 select-none sm:p-6"
         style="touch-action: none"
         @wheel.prevent="onWheel"
         @click.self="close"
       >
-        <div ref="stageRef" class="flex max-h-full max-w-full items-center justify-center">
+        <div
+          ref="stageRef"
+          class="lightbox-stage flex max-h-full w-full max-w-4xl items-center justify-center"
+        >
           <slot />
         </div>
       </div>
@@ -139,3 +141,13 @@ onUnmounted(() => {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+.lightbox-stage :deep(svg) {
+  max-width: 100%;
+  max-height: 62vh;
+  height: auto;
+  margin-inline: auto;
+  display: block;
+}
+</style>

@@ -32,7 +32,7 @@ updatedAt: "2026-11-20"
   - **`Serializable`**：Java 标准序列化接口，实现最简单但底层大量依赖**反射解析类结构并产生大量临时 GC 对象**，速度慢且耗电，仅适合**需要把对象完整持久存到磁盘或网络透传**；
   - **`Parcelable`**：Android 专为 Binder 跨进程内存传递设计，直接在 **`Parcel` 共享内存块里按固定顺序读写基础字节流，零反射几乎无临时对象**，配合 Kotlin **`@Parcelize`** 插件编译期自动生成模板代码，内存级传递（`Intent`/`Bundle`/AIDL）务必首选 `Parcelable`！
 - **JSON 库选型与 Kotlin 致命陷阱（必考实战经验）**：
-  - 老牌 **`Gson`** 底层基于 Java `Unsafe.allocateInstance()` 反射**直接绕过 Kotlin 构造函数**，导致 Kotlin 类里写的**非空字段（`val name: String`）碰到后台漏传字段时居然被强行塞入 `null`（直到使用时才抛 NPE），且**构造器写的默认参数 `val age: Int = 18` 全部失效变成 `0`！**
+  - 老牌 **`Gson`** 底层基于 Java `Unsafe.allocateInstance()` 反射 **直接绕过 Kotlin 构造函数**，导致 Kotlin 类里写的 **非空字段（`val name: String`）** 碰到后台漏传字段时居然被强行塞入 `null`（直到使用时才抛 NPE），且 **构造器写的默认参数 `val age: Int = 18` 全部失效变成 `0`！**
   - 现代 Kotlin 工程强烈推荐 **`kotlinx.serialization`**（纯编译期生成序列化器，**零反射**、全面尊重 Kotlin 默认值与空安全、支持 JSON/Protobuf 且跨 KMP）或 **`Moshi`**（支持 KSP 代码生成适配器，完美尊重空安全与默认值）。
 
 ## 核心原理解析

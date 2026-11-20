@@ -2,6 +2,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
+import MarkdownIt from 'markdown-it'
 import { describe, expect, it } from 'vitest'
 import {
   CategoryMetaSchema,
@@ -81,6 +82,7 @@ describe('full question bank content integrity', () => {
         .filter((f) => f.endsWith('.vue'))
         .map((f) => f.replace(/\.vue$/, '')),
     )
+    const plainMd = new MarkdownIt({ html: false })
 
     for (const l1 of l1Dirs) {
       const l1Dir = path.join(ANDROID_DIR, l1.name)
@@ -222,12 +224,20 @@ describe('full question bank content integrity', () => {
             ).toBe(true)
           }
 
-          // 5. Reject hotlinked third-party images outside backticks
-          const strippedInline = nonCodeLines.join('\n').replace(/`[^`\n]+`/g, '')
+          // 5. Reject hotlinked third-party images and unparsed ** bold delimiters outside backticks
+          const nonCodeText = nonCodeLines.join('\n')
+          const strippedInline = nonCodeText.replace(/`[^`\n]+`/g, '')
           const imgMatch = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)|<img\s+[^>]*src\s*=\s*["']?(https?:\/\/[^"'\s>]+)/i.exec(
             strippedInline,
           )
           expect(imgMatch, `Forbidden external image hotlink found in ${fullPath}`).toBeNull()
+
+          const renderedNoCode = plainMd
+            .render(nonCodeText)
+            .replace(/<code>[\s\S]*?<\/code>/g, '')
+          expect(renderedNoCode.includes('**'), `Unparsed ** delimiter found in ${fullPath}`).toBe(
+            false,
+          )
 
           for (const ref of fm.references) {
             expect(isForbiddenImageUrl(ref.url), `Forbidden image domain in ${fullPath}`).toBe(false)

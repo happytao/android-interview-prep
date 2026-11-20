@@ -313,7 +313,11 @@ export function questionBankPlugin(): Plugin {
       const token = tokens[idx]!
       if (token.tag === 'h2' || token.tag === 'h3') {
         const inlineToken = tokens[idx + 1]
-        const text = inlineToken?.content?.trim() ?? ''
+        const text = (
+          inlineToken?.children && inlineToken.children.length > 0
+            ? inlineToken.children.map((c) => c.content).join('')
+            : inlineToken?.content ?? ''
+        ).trim()
         headingCounter += 1
         const headingId = `sec-${headingCounter}`
         token.attrSet('id', headingId)

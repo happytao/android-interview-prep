@@ -43,7 +43,7 @@ updatedAt: "2026-11-20"
 **案例：`ViewPager2`（横向翻页）内嵌套横向滑动的 `RecyclerView` / Banner，或竖向 `RecyclerView` 内嵌套横向 `ViewPager2`**：
 - **判别规则（防斜滑误触）**：记录 `ACTION_DOWN` 坐标 `(downX, downY)`，在 `ACTION_MOVE` 计算 `dx = |x - downX|`、`dy = |y - downY|`，先过 **`ViewConfiguration.get(context).scaledTouchSlop`** 防抖阈值：
   - 若 `dx > dy`（横向意图更强，如角度 `< 45°` 甚至可收紧到 `dx > dy * 1.2`）：交由横向滑动容器处理；
-  - 若是**同为横向的 `ViewPager2` 套横向 Banner / 画廊**：Banner 在 `ACTION_DOWN` 调用 `requestDisallowInterceptTouchEvent(true)`，并在 `MOVE` 时判断**当滑到第一页继续右滑（`!canScrollHorizontally(-1)`）或滑到最后一页继续左滑（`!canScrollHorizontally(1)`）**时再设 `false` 归还给外层 `ViewPager2` 翻页！
+  - 若是**同为横向的 `ViewPager2` 套横向 Banner / 画廊**：Banner 在 `ACTION_DOWN` 调用 `requestDisallowInterceptTouchEvent(true)`，并在 `MOVE` 时判断**当滑到第一页继续右滑（`!canScrollHorizontally(-1)`）或滑到最后一页继续左滑（`!canScrollHorizontally(1)`）** 时再设 `false` 归还给外层 `ViewPager2` 翻页！
 
 ## 图解流程
 

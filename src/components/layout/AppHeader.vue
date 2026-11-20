@@ -56,7 +56,7 @@ const themeLabel = computed(() => {
           >
             <BookOpenCheck class="h-4.5 w-4.5" />
           </span>
-          <span class="hidden text-sm font-bold tracking-tight sm:inline">技术面试复习站</span>
+          <span class="hidden whitespace-nowrap text-sm font-bold tracking-tight sm:inline">技术面试复习站</span>
         </RouterLink>
 
         <nav class="hidden items-center gap-1 md:flex" aria-label="技术领域切换">
@@ -64,7 +64,7 @@ const themeLabel = computed(() => {
             v-for="d in allDomains"
             :key="d.config.id"
             :to="d.config.status === 'active' ? `/${d.config.id}` : `/${d.config.id}/planned`"
-            class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition"
+            class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition xl:px-2.5"
             :class="
               props.activeDomain === d.config.id
                 ? 'bg-[var(--domain-accent-soft)] text-[var(--domain-accent)] font-semibold'
@@ -74,7 +74,7 @@ const themeLabel = computed(() => {
             <span>{{ d.config.name }}</span>
             <span
               v-if="d.config.status === 'planned'"
-              class="rounded bg-[var(--bg-surface-muted)] px-1 py-0.5 text-[10px] text-[var(--text-muted)]"
+              class="hidden rounded bg-[var(--bg-surface-muted)] px-1 py-0.5 text-[10px] text-[var(--text-muted)] xl:inline"
             >
               规划中
             </span>
@@ -83,17 +83,18 @@ const themeLabel = computed(() => {
       </div>
 
       <!-- Right: Actions -->
-      <div class="flex items-center gap-1.5">
+      <div class="flex shrink-0 items-center gap-1.5">
         <button
           type="button"
-          class="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 text-xs text-[var(--text-secondary)] transition hover:border-[var(--domain-accent)] hover:text-[var(--text-primary)] sm:px-3"
+          class="inline-flex h-9 shrink-0 whitespace-nowrap items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 text-xs text-[var(--text-secondary)] transition hover:border-[var(--domain-accent)] hover:text-[var(--text-primary)] sm:px-3"
           aria-label="搜索题目"
           @click="emit('openSearch')"
         >
-          <Search class="h-4 w-4 text-[var(--domain-accent)]" />
-          <span class="hidden sm:inline">搜索题目 / 关键词</span>
+          <Search class="h-4 w-4 shrink-0 text-[var(--domain-accent)]" />
+          <span class="hidden xl:inline">搜索题目 / 关键词</span>
+          <span class="hidden sm:inline xl:hidden">搜索</span>
           <kbd
-            class="hidden rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] lg:inline"
+            class="hidden rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] xl:inline"
           >
             Ctrl K
           </kbd>
@@ -101,10 +102,10 @@ const themeLabel = computed(() => {
 
         <RouterLink
           to="/mock"
-          class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs font-medium text-[var(--text-primary)] transition hover:border-[var(--domain-accent)]"
+          class="inline-flex h-9 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs font-medium text-[var(--text-primary)] transition hover:border-[var(--domain-accent)]"
           title="模拟抽题与今日待复习"
         >
-          <Shuffle class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
+          <Shuffle class="h-3.5 w-3.5 shrink-0 text-[var(--domain-accent)]" />
           <span class="hidden sm:inline">抽题演练</span>
           <span
             v-if="studyStore.stats.dueCount > 0"
@@ -116,7 +117,7 @@ const themeLabel = computed(() => {
 
         <button
           type="button"
-          class="hidden h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-medium transition md:inline-flex"
+          class="hidden h-9 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl border px-2.5 text-xs font-medium transition md:inline-flex"
           :class="
             studyStore.state.selfTestMode
               ? 'border-[var(--domain-accent)] bg-[var(--domain-accent-soft)] text-[var(--domain-accent)]'

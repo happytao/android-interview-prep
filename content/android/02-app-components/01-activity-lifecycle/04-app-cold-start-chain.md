@@ -29,7 +29,7 @@ updatedAt: "2026-11-20"
 ## 面试答题思路
 
 - **分段切入法（防止一团乱麻）**：把冷启动拆成清晰的三段接力——**① 跨进程调度（Launcher → ATMS）** → **② 进程孵化（ATMS → Zygote）** → **③ 应用主线程初始化与首帧渲染（`ActivityThread` → `Application` → `Activity` → `ViewRootImpl`）**。
-- **核心机制点睛**：Zygote 通过 Socket 接收 `fork` 指令并利用 Linux **写时复制（Copy-on-Write）**共享预加载类与系统资源；主线程 `Looper.prepareMainLooper()` 启动后借助 **`ClientTransaction` / Handler `H`** 调度组件生命周期；最终 `onResume` 后调用 `WindowManager.addView` 创建 **`ViewRootImpl`** 完成首帧绘制并撤掉 `StartingWindow`（SplashScreen）。
+- **核心机制点睛**：Zygote 通过 Socket 接收 `fork` 指令并利用 Linux **写时复制（Copy-on-Write）** 共享预加载类与系统资源；主线程 `Looper.prepareMainLooper()` 启动后借助 **`ClientTransaction` / Handler `H`** 调度组件生命周期；最终 `onResume` 后调用 `WindowManager.addView` 创建 **`ViewRootImpl`** 完成首帧绘制并撤掉 `StartingWindow`（SplashScreen）。
 
 ## 核心原理解析
 

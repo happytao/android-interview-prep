@@ -28,8 +28,8 @@ updatedAt: "2026-11-20"
 
 ## 面试答题思路
 
-- **本质区分**：`startService` 面向**“长期后台干活”**（与调用者解耦，必须显式 `stopSelf`/`stopService` 才停止）；`bindService` 面向**“客户端 C/S 交互”**（生命周期绑定全部连接方，所有客户端 `unbindService` 后自动销毁）。
-- **混合使用销毁铁律**：如果同时既 `startService` 又 `bindService`，只有当**`stopSelf/stopService` 被调用 AND 所有客户端都 `unbindService` 之后**，系统才会回调 `onDestroy()`。
+- **本质区分**：`startService` 面向 **“长期后台干活”**（与调用者解耦，必须显式 `stopSelf`/`stopService` 才停止）；`bindService` 面向 **“客户端 C/S 交互”**（生命周期绑定全部连接方，所有客户端 `unbindService` 后自动销毁）。
+- **混合使用销毁铁律**：如果同时既 `startService` 又 `bindService`，只有当 **`stopSelf/stopService` 被调用 AND 所有客户端都 `unbindService` 之后**，系统才会回调 `onDestroy()`。
 - **高版本强约束**：Android 8.0 禁止后台隐式静默拉起普通 Service（需用 `startForegroundService()` 并在 **5 秒内**调用 `startForeground()` 弹出通知）；Android 12 限制后台从零起前台服务；Android 14+ 强制在 Manifest 与代码声明精确的 **`foregroundServiceType`**（且上架需审核合规理由）。
 
 ## 核心原理解析

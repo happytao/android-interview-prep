@@ -47,7 +47,7 @@ updatedAt: "2026-11-20"
 ### 3. `launch` vs `async` 与 `CoroutineExceptionHandler` 边界
 - `launch` 在未捕获异常发生时**立即向父级抛出**，若挂载在顶层根协程且配置了 `CoroutineExceptionHandler` 可兜底捕获；
 - `async` 将异常封装在 `Deferred` 结果中直到调用 `await()` 才抛出，**但若处于普通 `Job` 父子关系下，未捕获异常仍会立刻上报触发父级取消**；
-- `CoroutineExceptionHandler` 仅对**根协程（或 `supervisorScope` 直接子 `launch`）**生效，挂载在普通内层子 `launch` 上会被忽略。
+- `CoroutineExceptionHandler` 仅对**根协程（或 `supervisorScope` 直接子 `launch`）** 生效，挂载在普通内层子 `launch` 上会被忽略。
 
 ## 图解流程
 

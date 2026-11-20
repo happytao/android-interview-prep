@@ -29,7 +29,7 @@ updatedAt: "2026-11-20"
 ## 面试答题思路
 
 - **`ThreadLocal` 隔离本质**：不是在 `ThreadLocal` 里建一个大 Map 存所有线程，而是**每个 `Thread` 内部自己持有 `threadLocals`（`ThreadLocalMap`）**，以 `ThreadLocal` 实例为弱引用 Key 存取线程私有副本（因此 `Looper.myLooper()` 能准确隔离拿到当前线程专属的 Looper）。
-- **`IdleHandler` 精准定位**：当 `MessageQueue` **暂时没有立即要执行的到期消息（即将陷入阻塞休眠前）**才会回调 `queueIdle()`；返回值 `true` 代表保持注册下次空闲继续触发，`false` 代表执行一次后自动摘除（绝佳用于非首屏低优初始化和启动后预加载）。
+- **`IdleHandler` 精准定位**：当 `MessageQueue` **暂时没有立即要执行的到期消息（即将陷入阻塞休眠前）** 才会回调 `queueIdle()`；返回值 `true` 代表保持注册下次空闲继续触发，`false` 代表执行一次后自动摘除（绝佳用于非首屏低优初始化和启动后预加载）。
 - **Handler 泄漏根因与治理**：非静态内部类/匿名 `Handler`（或匿名 `Runnable`）默认隐式持有外部 `Activity` 强引用，若发送了一条延时 5 分钟的消息，`MessageQueue` → `Message.target` → `Handler` → `Activity` 形成强引用链阻止回收；治理方式为**静态内部类 + `WeakReference<Activity>` + `onDestroy` 清空消息**。
 
 ## 核心原理解析

@@ -28,9 +28,9 @@ updatedAt: "2026-11-20"
 
 ## 面试答题思路
 
-- **核心结论（先分场景）**：`ViewModel` 的存活保证仅覆盖**“配置变更引起的 Activity 重建（如旋转屏幕、切深浅色、改系统语言）”**，但**不抗后台低内存进程被杀**！抗进程被杀必须协同 **`SavedStateHandle`**（本质接入 `SavedStateRegistry` 持久化轻量状态进 `Bundle`）。
+- **核心结论（先分场景）**：`ViewModel` 的存活保证仅覆盖 **“配置变更引起的 Activity 重建（如旋转屏幕、切深浅色、改系统语言）”**，但**不抗后台低内存进程被杀**！抗进程被杀必须协同 **`SavedStateHandle`**（本质接入 `SavedStateRegistry` 持久化轻量状态进 `Bundle`）。
 - **配置变更存活底层秘密**：`Activity` 因配置变化销毁前，`ActivityThread.performDestroyActivity()` 会回调 `onRetainNonConfigurationInstance()` 把包含 **`ViewModelStore`** 的 `NonConfigurationInstances` 对象**暂存进 `ActivityThread` 的 `ActivityClientRecord` 里**；新 Activity 创建重启 `attach()` 时原封不动接回旧的 `ViewModelStore`，里面原有的 `ViewModel` 实例原样复用，因此正在跑的 `viewModelScope` 请求完全不断！
-- **何时真正销毁**：`ComponentActivity` 监听 `Lifecycle` 收到 `ON_DESTROY` 时检查 `!isChangingConfigurations()`——确认**不是配置变更（即真关闭退出）**才调 `viewModelStore.clear()` 并触发 `ViewModel.onCleared()` 取消协程。
+- **何时真正销毁**：`ComponentActivity` 监听 `Lifecycle` 收到 `ON_DESTROY` 时检查 `!isChangingConfigurations()`——确认**不是配置变更（即真关闭退出）** 才调 `viewModelStore.clear()` 并触发 `ViewModel.onCleared()` 取消协程。
 
 ## 核心原理解析
 

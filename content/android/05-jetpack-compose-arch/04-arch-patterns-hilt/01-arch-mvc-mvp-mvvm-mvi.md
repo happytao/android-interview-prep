@@ -30,7 +30,7 @@ updatedAt: "2026-11-20"
 
 - **演进主线（一直在解“视图与逻辑解耦 + 状态可控”问题）**：
   - **MVC**：`Activity/Fragment` 同时兼任 View 与 Controller，动辄上千行变成超级上帝类（God Object）；
-  - **MVP**：抽离 `Presenter` 与 `View` 接口彻底解耦、方便单测，但**海量接口膨胀（Contract 地狱）**且 Presenter 互持引用极易忘解绑引发内存泄漏；
+  - **MVP**：抽离 `Presenter` 与 `View` 接口彻底解耦、方便单测，但**海量接口膨胀（Contract 地狱）** 且 Presenter 互持引用极易忘解绑引发内存泄漏；
   - **MVVM**：引入 `ViewModel` + 数据绑定（`LiveData`/`StateFlow`），消除了接口回调且跨旋转存活；但复杂页面常常同时暴露七八个分散的 `StateFlow`（`isLoading`/`list`/`isEmpty`/`error`），很容易彼此互斥冲突产生“既转圈又显示报错”的非法中间态；
   - **MVI（单向数据流 UDF）**：将界面全量状态收敛为**唯一一个不可变 `UiState` 数据类**，用户动作封装为 **`Intent / Action`** 流入 ViewModel，经过纯函数逻辑 / Repository 更新生成全新 `UiState` 快照向下驱动 UI，彻底消灭状态撕裂。
 

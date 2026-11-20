@@ -55,7 +55,7 @@ updatedAt: "2026-11-20"
 ## 高频追问与关键词
 
 - **追问 1**：在 `onReceive()` 里直接 `thread { ... }` 开子线程执行 5 秒耗时操作为什么仍有风险？
-  - 关键词：`onReceive()` 一旦返回，如果应用没有其他活跃前台组件，整个进程会被降级为**空进程（Cached/Empty）**极易被系统瞬间杀掉；需调用 `goAsync()` 获取 `PendingResult` 告诉 AMS “还在异步处理中”，完成后调用 `finish()`。
+  - 关键词：`onReceive()` 一旦返回，如果应用没有其他活跃前台组件，整个进程会被降级为**空进程（Cached/Empty）** 极易被系统瞬间杀掉；需调用 `goAsync()` 获取 `PendingResult` 告诉 AMS “还在异步处理中”，完成后调用 `finish()`。
 - **追问 2**：Android 14（API 34）动态注册广播最常见的新崩溃是什么？
   - 关键词：抛出 `SecurityException`，必须传入 `ContextCompat.RECEIVER_EXPORTED` 或 `RECEIVER_NOT_EXPORTED` 明确声明是否接收其他应用广播。
 

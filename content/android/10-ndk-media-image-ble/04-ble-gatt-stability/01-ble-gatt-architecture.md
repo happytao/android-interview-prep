@@ -55,15 +55,15 @@ GATT 是严格的四层树形结构：
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Scanning : "startScan(ScanFilter) 搜索目标硬件"
-  Scanning --> Connecting : "命中设备并 stopScan -> connectGatt()"
-  Connecting --> Connected : "onConnectionStateChange(STATE_CONNECTED)"
-  Connected --> Discovering : "gatt.discoverServices() 拉取 UUID 服务表"
-  Discovering --> Negotiating : "onServicesDiscovered(SUCCESS)"
-  Negotiating --> EnablingNotify : "requestMtu(512) + 写 0x2902 CCCD 开启 Notify"
-  EnablingNotify --> Ready : "onDescriptorWrite(SUCCESS) 进入双向通信态"
-  Ready --> Ready : "按 MTU-3 分包 writeCharacteristic / onCharacteristicChanged"
-  Ready --> [*] : "disconnect() 后务必调用 gatt.close() 释放底层资源"
+  [*] --> Scanning : startScan 搜索目标硬件
+  Scanning --> Connecting : 命中设备 stopScan 并 connectGatt()
+  Connecting --> Connected : onConnectionStateChange(STATE_CONNECTED)
+  Connected --> Discovering : discoverServices() 拉取 UUID 服务表
+  Discovering --> Negotiating : onServicesDiscovered(SUCCESS)
+  Negotiating --> EnablingNotify : requestMtu(512) + 写 0x2902 CCCD 开启 Notify
+  EnablingNotify --> Ready : onDescriptorWrite(SUCCESS) 进入通信态
+  Ready : Ready (按 MTU-3 分包读写 & 收发 Notify)
+  Ready --> [*] : disconnect() 后务必调用 gatt.close()
 ```
 
 ## 高频追问与关键词

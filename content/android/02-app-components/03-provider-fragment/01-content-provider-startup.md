@@ -35,7 +35,7 @@ updatedAt: "2026-11-20"
 ## 核心原理解析
 
 ### 1. 跨进程共享为什么快？（`CursorWindow` + 共享内存）
-单纯靠 Binder 跨进程拷贝大量数据库结果集不仅性能低还会触发 `TransactionTooLargeException`。`ContentProvider` 查询时，服务端将结果填充进由 **`MemoryFile` / Ashmem** 创建的共享内存块 **`CursorWindow`**（通常约 2MB），仅通过 Binder 把对应**文件描述符（FD）**传给调用方进程映射同一片物理内存，实现海量行数据的高效跨进程读取。
+单纯靠 Binder 跨进程拷贝大量数据库结果集不仅性能低还会触发 `TransactionTooLargeException`。`ContentProvider` 查询时，服务端将结果填充进由 **`MemoryFile` / Ashmem** 创建的共享内存块 **`CursorWindow` **（通常约 2MB），仅通过 Binder 把对应**文件描述符（FD）** 传给调用方进程映射同一片物理内存，实现海量行数据的高效跨进程读取。
 
 ### 2. 启动初始化时机源码序
 在 `ActivityThread.handleBindApplication()` 中，执行顺序严格为：

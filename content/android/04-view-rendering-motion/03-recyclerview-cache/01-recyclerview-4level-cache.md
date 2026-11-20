@@ -28,7 +28,7 @@ updatedAt: "2026-11-20"
 
 ## 面试答题思路
 
-- **本质概括**：`RecyclerView` 相比老 `ListView` 最大的性能飞跃是把缓存拆分成**“免重新绑定数据的纯复用层”**（Scrap + CachedViews）与**“需重新走 `onBindViewHolder` 的跨类型通用池”**（RecycledViewPool），从而大幅减少滑动时的布局解析与数据重绑。
+- **本质概括**：`RecyclerView` 相比老 `ListView` 最大的性能飞跃是把缓存拆分成 **“免重新绑定数据的纯复用层”**（Scrap + CachedViews）与 **“需重新走 `onBindViewHolder` 的跨类型通用池”**（RecycledViewPool），从而大幅减少滑动时的布局解析与数据重绑。
 - **核心四级缓存职责与默认容量**：
   1. **一级 `mAttachedScrap` / `mChangedScrap`**：屏幕内临时剥离的 ViewHolder（如执行局部刷新或布局调整），**无需 `create` 也无需 `bind`**；
   2. **二级 `mCachedViews`（默认容量 2）**：刚滑出屏幕外的一小批 ViewHolder，**按原始 `position` 精确匹配**，来回微滑瞬间找回，**无需重新 `onBindViewHolder`**；

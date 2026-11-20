@@ -28,7 +28,7 @@ updatedAt: "2026-11-20"
 
 ## 面试答题思路
 
-- **核心判别哲学（一句话直击灵魂）**：把一个**“本该被回收的对象”**包裹进绑定了 **`ReferenceQueue` 的 `WeakReference`** 中——如果触发过 GC 之后，在 `ReferenceQueue` 里始终捞不到这个弱引用，就说明还有隐藏的强引用链吊着它导致泄漏！
+- **核心判别哲学（一句话直击灵魂）**：把一个 **“本该被回收的对象”** 包裹进绑定了 **`ReferenceQueue` 的 `WeakReference`** 中——如果触发过 GC 之后，在 `ReferenceQueue` 里始终捞不到这个弱引用，就说明还有隐藏的强引用链吊着它导致泄漏！
 - **完整四步工作链路**：
   1. **监听注册（`AppWatcher`）**：通过 `AppStart` 自动无侵入注册 `ActivityLifecycleCallbacks`、`FragmentLifecycleCallbacks` 以及监听 `ViewModel` `onCleared()`、Service 等销毁节点；
   2. **等待与触发 GC**：对象进入 `onDestroy` 后生成 `KeyedWeakReference(target, key, queue)` 放入监听集合；**延迟 5 秒**后先清理已进队列的对象；若仍在集合中，手动执行一次 `Runtime.getRuntime().gc()` 后再等一小会再次清理；

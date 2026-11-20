@@ -45,7 +45,7 @@ updatedAt: "2026-11-20"
 - **解决手段**：
   - 使用不可变字段 `val` + Kotlin `kotlinx.collections.immutable`（`ImmutableList`）；
   - 或在确定安全时标注 **`@Immutable`** / **`@Stable`**；
-  - **Compose 1.7 / Kotlin 2.0 强跳过模式（Strong Skipping Mode，现已默认开启）**：即使参数类型不稳定，只要**引用实例相等（`===`）**同样允许直接跳过重组，并自动把捕获不稳定参数的 Lambda 记住（`remember`），大大降低老工程迁移成本。
+  - **Compose 1.7 / Kotlin 2.0 强跳过模式（Strong Skipping Mode，现已默认开启）**：即使参数类型不稳定，只要**引用实例相等（`===`）** 同样允许直接跳过重组，并自动把捕获不稳定参数的 Lambda 记住（`remember`），大大降低老工程迁移成本。
 
 ## 图解流程
 

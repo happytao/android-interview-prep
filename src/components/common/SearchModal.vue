@@ -166,7 +166,7 @@ const onKeydown = (e: KeyboardEvent) => {
           <button
             v-if="query"
             type="button"
-            class="rounded-md px-1.5 py-0.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            class="shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             @click="query = ''"
           >
             清空

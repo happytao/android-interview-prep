@@ -28,7 +28,7 @@ updatedAt: "2026-11-20"
 
 ## 面试答题思路
 
-- **触发条件**：`onSaveInstanceState()` 仅在**“系统可能在未征得用户同意前销毁 Activity”**时调用（如屏幕旋转、语言/深浅色切换、内存不足退后台被回收），而用户主动按返回键或调用 `finish()` **不会触发**。
+- **触发条件**：`onSaveInstanceState()` 仅在 **“系统可能在未征得用户同意前销毁 Activity”** 时调用（如屏幕旋转、语言/深浅色切换、内存不足退后台被回收），而用户主动按返回键或调用 `finish()` **不会触发**。
 - **恢复双通道**：`onCreate(savedInstanceState)` 均能收到非空 `Bundle`，而 `onRestoreInstanceState(savedInstanceState)` 仅在 `Bundle` 非空时才调用且位于 `onStart()` 之后。
 - **现代三层存储分工**：**瞬态轻量 UI 状态**（输入框文本、滚动偏移）靠 `onSaveInstanceState` / `rememberSaveable`；**配置变更内存对象**靠 `ViewModel`（配合 `SavedStateHandle` 抗进程被杀）；**大体积/持久化数据**存 Room/Disk。
 

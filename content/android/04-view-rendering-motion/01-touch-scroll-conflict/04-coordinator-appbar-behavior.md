@@ -67,7 +67,7 @@ flowchart LR
 - **追问 1**：为什么 `AppBarLayout` 配 `RecyclerView` 滑动时偶尔出现猛滑停下来后，接着按住 `AppBarLayout` 自身拖动滑不动或剧烈抖动？
   - 关键词：老版本 `AppBarLayout` 的惯性 Fling `OverScroller` 与下方 `RecyclerView` Fling 未做完全隔离停止，快速点击 `AppBarLayout` 区域时必须通过停止正在进行中的 Fling 动画（现代 Material 库已大幅修复，自定义时需在 `onInterceptTouchEvent` / `ACTION_DOWN` 取消惯性 scroller），另外检查 `app:layout_scrollFlags` 是否误对吸顶后的外层布局导致测量抖动。
 - **追问 2**：想实现页面滚动时顶部渐变半透明 TitleBar + 状态栏图标变色，用 `CoordinatorLayout` 还是直接监听 `RecyclerView.addOnScrollListener` 好？
-  - 关键词：如果只是纯顶部浮层渐变 + 单列表吸顶，单 `RecyclerView` 监听滚动或 `ConcatAdapter` 配合吸顶 `ItemDecoration` 往往更轻量可控、无多组件耦合坑；只有在**多组件协同视差缩放（`CollapsingToolbarLayout`）+ 多个嵌套页面切换（`ViewPager2` 共用同一个折叠头部）**时，`CoordinatorLayout + AppBarLayout` 才是不可替代的最佳方案。
+  - 关键词：如果只是纯顶部浮层渐变 + 单列表吸顶，单 `RecyclerView` 监听滚动或 `ConcatAdapter` 配合吸顶 `ItemDecoration` 往往更轻量可控、无多组件耦合坑；只有在**多组件协同视差缩放（`CollapsingToolbarLayout`）+ 多个嵌套页面切换（`ViewPager2` 共用同一个折叠头部）** 时，`CoordinatorLayout + AppBarLayout` 才是不可替代的最佳方案。
 
 ## 延伸参考
 

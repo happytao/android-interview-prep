@@ -33,7 +33,7 @@ updatedAt: "2026-11-20"
   1. **顺序交替控制（如 3 线程交替打印 `A-B-C` 10 次）**：核心是“**共享状态位 + 条件等待 + 精准或全量唤醒**”；最干净的写法是 `ReentrantLock` 配合 **3 个独立 `Condition`**（精确唤醒下一个线程），或者 3 个初始许可分别为 `1, 0, 0` 的 `Semaphore` 链式 `acquire`/`release`；
   2. **生产者-消费者模型**：本质是一个**线程安全的有界缓冲区（Bounded Buffer）**，核心解决两件事：**队列满时阻塞生产者、队列空时阻塞消费者**，工程里可直接讲 `ArrayBlockingQueue` 源码思想或用 Kotlin 协程 `Channel(capacity)` 对比加分。
 - **面试手写最易扣分的 3 个坑**：
-  - 等待条件必须用 **`while (!condition)`** 而不是 `if`，防止**虚假唤醒（Spurious Wakeup）**和多线程竞争条件再次失效；
+  - 等待条件必须用 **`while (!condition)`** 而不是 `if`，防止**虚假唤醒（Spurious Wakeup）** 和多线程竞争条件再次失效；
   - 用 **`notifyAll()`** 替代 `notify()`（单 `Condition` 下 `notify()` 只随机叫醒 1 个线程，极易叫醒同阵营线程导致集体永久挂起）；
   - 循环退出边界要提前更新状态位再解锁/唤醒，防止最后一个线程永远卡死在 `await()` 无法退出进程。
 
@@ -69,7 +69,7 @@ sequenceDiagram
 - **追问 1**：为什么 `Object.wait()` 和 `notify()` 必须写在 `synchronized` 代码块里面？
   - 关键词：**Lost Wake-Up（唤醒丢失）问题**；如果不在同一把互斥锁保护下检查条件并挂起，线程刚判断完条件为假准备 `wait()`，另一线程抢先修改条件并 `notify()`，之后再 `wait()` 就永远错过了这次唤醒信号，同时互斥锁也能保证条件变量与队列指针修改的可见性与原子性。
 - **追问 2**：Android 中 `HandlerThread` + `MessageQueue` 和生产者-消费者模型有什么联系？
-  - 关键词：典型的**多生产者-单消费者（MPSC）**模型；任意子线程都可以作为生产者调用 `handler.sendMessage()`（在 `enqueueMessage` 内部加 `synchronized(this)` 按 `when` 时间戳入队并在需要时 `nativeWake` 唤醒）；唯一的消费线程 `Looper.loop()` 通过 `epoll_wait` 在无消息时挂起休眠。
+  - 关键词：典型的**多生产者-单消费者（MPSC）** 模型；任意子线程都可以作为生产者调用 `handler.sendMessage()`（在 `enqueueMessage` 内部加 `synchronized(this)` 按 `when` 时间戳入队并在需要时 `nativeWake` 唤醒）；唯一的消费线程 `Looper.loop()` 通过 `epoll_wait` 在无消息时挂起休眠。
 
 ## 延伸参考
 

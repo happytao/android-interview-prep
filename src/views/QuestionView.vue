@@ -196,8 +196,11 @@ const setStudyStatus = (status: StudyStatus) => {
               {{ question.summary }}
             </p>
 
-            <!-- Keywords Strip -->
-            <div class="mt-3.5 flex flex-wrap items-center gap-1.5">
+            <!-- Keywords Strip (hidden when Self-Test mode collapses answer to avoid spoiling hints) -->
+            <div
+              v-if="!(studyStore.state.selfTestMode && !studyStore.isRevealed(question.id))"
+              class="mt-3.5 flex flex-wrap items-center gap-1.5"
+            >
               <Sparkles class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
               <span
                 v-for="kw in question.keywords"

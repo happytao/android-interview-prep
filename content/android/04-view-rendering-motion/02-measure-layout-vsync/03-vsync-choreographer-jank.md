@@ -29,7 +29,7 @@ updatedAt: "2026-11-20"
 
 ## 面试答题思路
 
-- **一句话概览**：为了消除屏幕撕裂并对齐显示器刷新率（60Hz = 16.6ms，120Hz = 8.3ms），Android 通过 **`Choreographer`（编舞者）** 接收系统硬件 **VSync（垂直同步）**信号，统一驱动一帧内的输入、动画与绘制工作，最后交由 **`RenderThread` + GPU** 渲染进图形缓冲区，由 **`SurfaceFlinger`** 合成上屏。
+- **一句话概览**：为了消除屏幕撕裂并对齐显示器刷新率（60Hz = 16.6ms，120Hz = 8.3ms），Android 通过 **`Choreographer`（编舞者）** 接收系统硬件 **VSync（垂直同步）** 信号，统一驱动一帧内的输入、动画与绘制工作，最后交由 **`RenderThread` + GPU** 渲染进图形缓冲区，由 **`SurfaceFlinger`** 合成上屏。
 - **单帧生命周期三大步**：① VSync 抵达唤醒主线程执行 `Choreographer.doFrame()`（Input → Animation → Insets → Traversal 测量布局录制 DisplayList）；② 同步移交独立渲染线程 **`RenderThread`** 调用 GPU 栅格化到 `GraphicBuffer`（释放主线程去干下一帧）；③ 下一 VSync 到达时 **`SurfaceFlinger`** 把准备好的新图层合成输出给显示屏。
 - **为什么会丢帧（Jank）**：CPU 主线程测量/业务耗时 + GPU 渲染耗时超过单帧预算（如 > 16.6ms），导致 SurfaceFlinger 上屏时刻拿不到新 `GraphicBuffer`，被迫继续显示上一帧旧画面（即掉帧卡顿）。
 
@@ -56,7 +56,7 @@ updatedAt: "2026-11-20"
 ## 高频追问与关键词
 
 - **追问 1**：既然 VSync 每 16.6ms 一次，为什么 App 静止不动的时候不会每 16.6ms 白白重绘一次耗电？
-  - 关键词：Android 采用**按需请求 VSync（`scheduleVsync`）**机制——只有当页面执行了 `invalidate()`、`requestLayout()` 或正在播放动画时才会向系统申请下一次 VSync；画面静止时主线程完全通过 `epoll_wait` 休眠零耗电。
+  - 关键词：Android 采用**按需请求 VSync（`scheduleVsync`）** 机制——只有当页面执行了 `invalidate()`、`requestLayout()` 或正在播放动画时才会向系统申请下一次 VSync；画面静止时主线程完全通过 `epoll_wait` 休眠零耗电。
 - **追问 2**：在现代 120Hz 高刷手机上做性能排查，单帧时间预算变成多少？线上怎么衡量卡顿？
   - 关键词：120Hz 单帧预算缩半至 **8.33ms**；线上通过 `FrameMetrics` API（API 24+，`Window.addOnFrameMetricsAvailableListener`）精准获取每帧在主线程 vs RenderThread vs GPU 各阶段耗时及掉帧率（Janky Frames）。
 
