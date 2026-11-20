@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import {
   Bookmark,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
   Home,
-  Sparkles,
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -127,7 +125,7 @@ const setStudyStatus = (status: StudyStatus) => {
 
 <template>
   <div class="relative">
-    <!-- Top Reading Progress Bar -->
+    <!-- Top Hairline Reading Progress Bar -->
     <div class="fixed top-14 right-0 left-0 z-20 h-0.5 bg-transparent">
       <div
         class="h-full bg-[var(--domain-accent)] transition-[width] duration-150"
@@ -143,21 +141,21 @@ const setStudyStatus = (status: StudyStatus) => {
       </p>
       <RouterLink
         to="/"
-        class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--domain-accent)] px-4 py-2 text-sm font-semibold text-[var(--domain-accent-fg)]"
+        class="mt-6 inline-flex h-9 items-center gap-2 rounded-md bg-[var(--btn-primary-bg)] px-4 text-sm font-medium text-[var(--btn-primary-fg)]"
       >
         <Home class="h-4 w-4" />
         <span>返回知识地图</span>
       </RouterLink>
     </main>
 
-    <!-- 3-Column Workspace -->
+    <!-- 3-Column Documentation Workspace -->
     <div
       v-else
-      class="mx-auto flex max-w-[1440px] gap-6 px-3 pt-5 pb-24 sm:px-5 lg:pb-14"
+      class="mx-auto flex max-w-[1440px] gap-8 px-4 pt-6 pb-24 sm:px-6 lg:pb-16"
     >
       <!-- Left Desktop Sidebar -->
       <aside class="hidden w-72 shrink-0 lg:block">
-        <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
+        <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
           <CategoryTree
             v-if="domainManifest"
             :domain-id="domainId"
@@ -168,53 +166,53 @@ const setStudyStatus = (status: StudyStatus) => {
         </div>
       </aside>
 
-      <!-- Main Reading Column -->
+      <!-- Main Reading Column (Open Canvas, Zero Nested Cards) -->
       <main class="min-w-0 flex-1">
         <article class="mx-auto max-w-[74ch]">
           <!-- Breadcrumb -->
-          <div class="flex flex-wrap items-center gap-1.5 text-xs text-[var(--text-muted)]">
-            <RouterLink :to="`/${domainId}`" class="hover:text-[var(--domain-accent)]">
+          <div class="flex flex-wrap items-center gap-1.5 font-mono text-xs text-[var(--text-muted)]">
+            <RouterLink :to="`/${domainId}`" class="hover:text-[var(--text-primary)]">
               {{ domainManifest?.config.name ?? domainId }}
             </RouterLink>
             <span>/</span>
             <span>{{ question.categoryName }}</span>
             <span>/</span>
-            <span class="font-medium text-[var(--text-secondary)]">{{ question.subcategoryName }}</span>
+            <span class="text-[var(--text-secondary)]">{{ question.subcategoryName }}</span>
           </div>
 
-          <!-- Header Card -->
-          <header class="mt-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs sm:p-6">
+          <!-- Open Editorial Question Header -->
+          <header class="mt-4 border-b border-[var(--border-subtle)] pb-6">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <PriorityBadge
                 :priority="question.priority"
                 :status="studyStore.getStatus(question.id)"
               />
-              <div class="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+              <div class="flex items-center gap-2 font-mono text-xs text-[var(--text-muted)]">
                 <span class="inline-flex items-center gap-1">
                   <Clock class="h-3.5 w-3.5" />
-                  约 {{ question.estimatedMinutes }} 分钟
+                  约 {{ question.estimatedMinutes }} min
                 </span>
                 <span>·</span>
-                <span class="font-mono">{{ adjacent.index + 1 }} / {{ adjacent.total }}</span>
+                <span class="tabular-nums">{{ adjacent.index + 1 }} / {{ adjacent.total }}</span>
               </div>
             </div>
 
-            <h1 class="mt-3 text-xl leading-snug font-extrabold text-[var(--text-primary)] sm:text-2xl">
+            <h1 class="mt-4 text-2xl leading-snug font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
               {{ question.title }}
             </h1>
+
             <p
               v-if="!isSelfTestCollapsed"
-              class="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]"
+              class="mt-2.5 text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base"
             >
               {{ question.summary }}
             </p>
 
-            <!-- Keywords Strip (hidden when Self-Test mode collapses answer to avoid spoiling hints) -->
+            <!-- Monochrome Keywords Strip (hidden while Self-Test is collapsed) -->
             <div
               v-if="!isSelfTestCollapsed"
-              class="mt-3.5 flex flex-wrap items-center gap-1.5"
+              class="mt-4 flex flex-wrap items-center gap-1.5"
             >
-              <Sparkles class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
               <span
                 v-for="kw in question.keywords"
                 :key="kw"
@@ -225,7 +223,7 @@ const setStudyStatus = (status: StudyStatus) => {
             </div>
 
             <!-- Action Controls -->
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3.5">
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-2">
               <div class="flex flex-wrap gap-1.5">
                 <button
                   v-for="opt in [
@@ -235,11 +233,11 @@ const setStudyStatus = (status: StudyStatus) => {
                   ]"
                   :key="opt.value"
                   type="button"
-                  class="min-h-8 rounded-lg border px-2.5 py-1 text-xs font-medium transition"
+                  class="h-8 rounded-md border px-2.5 text-xs font-medium transition"
                   :class="
                     studyStore.getStatus(question.id) === opt.value
-                      ? 'border-[var(--domain-accent)] bg-[var(--domain-accent-soft)] text-[var(--domain-accent)] font-semibold'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      ? 'border-[var(--btn-primary-bg)] bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                   "
                   @click="setStudyStatus(opt.value as StudyStatus)"
                 >
@@ -249,11 +247,11 @@ const setStudyStatus = (status: StudyStatus) => {
 
               <button
                 type="button"
-                class="inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-medium transition"
+                class="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition"
                 :class="
                   studyStore.isBookmarked(question.id)
-                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    ? 'border-[var(--border-strong)] bg-[var(--bg-surface-muted)] text-[var(--text-primary)]'
+                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                 "
                 @click="studyStore.toggleBookmark(question.id)"
               >
@@ -267,16 +265,16 @@ const setStudyStatus = (status: StudyStatus) => {
           </header>
 
           <!-- Body Area -->
-          <div v-if="isLoading" class="mt-6 space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6">
+          <div v-if="isLoading" class="mt-6 space-y-3 py-4">
             <div class="h-5 w-1/3 animate-pulse rounded bg-[var(--bg-surface-muted)]" />
             <div class="h-4 w-full animate-pulse rounded bg-[var(--bg-surface-muted)]" />
             <div class="h-4 w-5/6 animate-pulse rounded bg-[var(--bg-surface-muted)]" />
-            <div class="h-32 w-full animate-pulse rounded-xl bg-[var(--bg-surface-muted)]" />
+            <div class="h-32 w-full animate-pulse rounded-md bg-[var(--bg-surface-muted)]" />
           </div>
 
           <div
             v-else-if="loadError"
-            class="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-700 dark:text-rose-300"
+            class="mt-6 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-300"
           >
             {{ loadError }}
           </div>
@@ -287,25 +285,23 @@ const setStudyStatus = (status: StudyStatus) => {
             :keywords="question.keywords"
             class="mt-6"
           >
-            <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs sm:p-7">
-              <QuestionBody :key="compiled.id" :blocks="compiled.blocks" :title="question.title" />
-              <ReferenceCards :references="compiled.references" />
-            </div>
+            <QuestionBody :key="compiled.id" :blocks="compiled.blocks" :title="question.title" />
+            <ReferenceCards :references="compiled.references" />
           </SelfTestPanel>
 
           <PersonalNotes :question-id="question.id" />
 
-          <!-- Prev / Next Cards -->
-          <nav class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="上下题切换">
+          <!-- Prev / Next Pagination -->
+          <nav class="mt-10 grid grid-cols-1 gap-3 border-t border-[var(--border-subtle)] pt-6 sm:grid-cols-2" aria-label="上下题切换">
             <RouterLink
               v-if="adjacent.prev"
               :to="`/${adjacent.prev.domain}/${adjacent.prev.slug}`"
-              class="group flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition hover:border-[var(--domain-accent)]"
+              class="group flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 transition-colors hover:bg-[var(--bg-hover)]"
             >
-              <ChevronLeft class="h-5 w-5 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--domain-accent)]" />
+              <ChevronLeft class="h-4 w-4 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-primary)]" />
               <div class="min-w-0">
-                <div class="text-[11px] text-[var(--text-muted)]">上一题</div>
-                <div class="truncate text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--domain-accent)]">
+                <div class="font-mono text-[11px] text-[var(--text-muted)]">上一题</div>
+                <div class="truncate text-sm font-medium text-[var(--text-primary)]">
                   {{ adjacent.prev.title }}
                 </div>
               </div>
@@ -315,28 +311,30 @@ const setStudyStatus = (status: StudyStatus) => {
             <RouterLink
               v-if="adjacent.next"
               :to="`/${adjacent.next.domain}/${adjacent.next.slug}`"
-              class="group flex items-center justify-end gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-right transition hover:border-[var(--domain-accent)]"
+              class="group flex items-center justify-end gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 text-right transition-colors hover:bg-[var(--bg-hover)]"
             >
               <div class="min-w-0">
-                <div class="text-[11px] text-[var(--text-muted)]">下一题</div>
-                <div class="truncate text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--domain-accent)]">
+                <div class="font-mono text-[11px] text-[var(--text-muted)]">下一题</div>
+                <div class="truncate text-sm font-medium text-[var(--text-primary)]">
                   {{ adjacent.next.title }}
                 </div>
               </div>
-              <ChevronRight class="h-5 w-5 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--domain-accent)]" />
+              <ChevronRight class="h-4 w-4 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-primary)]" />
             </RouterLink>
           </nav>
         </article>
       </main>
 
-      <!-- Right Desktop TOC Sidebar -->
-      <aside class="hidden w-56 shrink-0 xl:block">
-        <div class="sticky top-20 space-y-4">
+      <!-- Right Desktop Documentation Outline -->
+      <aside class="hidden w-52 shrink-0 xl:block">
+        <div class="sticky top-20 space-y-6">
           <div
             v-if="!isSelfTestCollapsed && compiled && compiled.toc.length > 0"
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4"
+            class="border-l border-[var(--border-subtle)] pl-4"
           >
-            <div class="text-xs font-bold tracking-wide text-[var(--text-primary)]">本页大纲</div>
+            <div class="font-mono text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+              On this page
+            </div>
             <ul class="mt-2.5 space-y-1.5 text-xs">
               <li
                 v-for="h in compiled.toc"
@@ -345,7 +343,7 @@ const setStudyStatus = (status: StudyStatus) => {
               >
                 <a
                   :href="`#${h.id}`"
-                  class="block truncate py-0.5 text-[var(--text-secondary)] hover:text-[var(--domain-accent)]"
+                  class="block truncate py-0.5 text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
                 >
                   {{ h.text }}
                 </a>
@@ -353,13 +351,10 @@ const setStudyStatus = (status: StudyStatus) => {
             </ul>
           </div>
 
-          <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-xs">
-            <div class="flex items-center gap-1.5 font-bold text-[var(--text-primary)]">
-              <CheckCircle2 class="h-4 w-4 text-[var(--domain-accent)]" />
-              <span>复习小贴士</span>
-            </div>
-            <p class="mt-2 leading-relaxed text-[var(--text-secondary)]">
-              中级岗位面试不看死记源码行数，先讲「为什么这样设计 + 核心链路」，再点出关键类与边界取舍即可拿高分。
+          <div class="border-l border-[var(--border-subtle)] pl-4 text-xs">
+            <div class="font-medium text-[var(--text-primary)]">面试答题原则</div>
+            <p class="mt-1.5 leading-relaxed text-[var(--text-muted)]">
+              先讲「为什么这样设计 + 核心链路」，再点出关键类与边界取舍，避免背诵式贴源码。
             </p>
           </div>
         </div>

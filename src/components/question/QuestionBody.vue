@@ -40,7 +40,7 @@ function resolveDiagram(name: string): Component | null {
 
       <div
         v-else-if="block.type === 'diagram'"
-        class="my-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300"
+        class="my-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300"
       >
         交互式图表组件 "{{ block.name }}" 尚未就绪
       </div>

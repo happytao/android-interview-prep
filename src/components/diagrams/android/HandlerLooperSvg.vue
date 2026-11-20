@@ -159,11 +159,11 @@ const isActive = (id: string) => activeHighlights.value.has(id)
 
       <!-- Epoll Box -->
       <rect
-        x="198"
+        x="170"
         y="212"
-        width="248"
+        width="304"
         height="72"
-        rx="12"
+        rx="10"
         :fill="isActive('epoll') ? 'var(--domain-accent-soft)' : 'var(--diagram-surface)'"
         :stroke="isActive('epoll') ? 'var(--domain-accent)' : 'var(--diagram-stroke)'"
         :stroke-width="isActive('epoll') ? 2.5 : 1.5"

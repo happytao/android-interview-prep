@@ -81,18 +81,18 @@ onUnmounted(() => {
 <template>
   <figure
     ref="containerRef"
-    class="my-5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs"
+    class="my-6 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4"
   >
     <div class="mb-2.5 flex items-center justify-between gap-2">
       <span
-        class="inline-flex items-center rounded-md bg-[var(--bg-surface-muted)] px-2 py-0.5 text-xs font-medium text-[var(--text-secondary)]"
+        class="inline-flex items-center rounded border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 py-0.5 font-mono text-[11px] font-medium text-[var(--text-secondary)]"
       >
-        Mermaid 机制流程图
+        Mermaid 流程图
       </span>
       <button
         v-if="renderedSvg"
         type="button"
-        class="inline-flex min-h-8 items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--domain-accent)] hover:text-[var(--domain-accent)]"
+        class="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)]"
         aria-label="全屏缩放流程图"
         @click="lightboxOpen = true"
       >
@@ -102,11 +102,11 @@ onUnmounted(() => {
     </div>
 
     <div
-      class="min-h-[200px] overflow-x-auto rounded-xl border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-3"
+      class="min-h-[200px] overflow-x-auto rounded-md border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-3"
     >
       <div
         v-if="errorMsg"
-        class="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-300"
+        class="rounded-md border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-300"
       >
         <p class="font-semibold">Mermaid 渲染异常：{{ errorMsg }}</p>
         <pre class="mt-2 overflow-x-auto whitespace-pre-wrap text-[11px]">{{ code }}</pre>
@@ -137,7 +137,7 @@ onUnmounted(() => {
     <DiagramLightbox v-model:open="lightboxOpen" :title="title ?? '机制流程图'">
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div
-        class="max-w-[92vw] rounded-xl bg-[var(--diagram-surface)] p-4 [&>svg]:h-auto [&>svg]:max-h-[75vh] [&>svg]:max-w-[88vw]"
+        class="max-w-[92vw] rounded-lg border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-4 [&>svg]:h-auto [&>svg]:max-h-[75vh] [&>svg]:max-w-[88vw]"
         v-html="renderedSvg"
       />
     </DiagramLightbox>

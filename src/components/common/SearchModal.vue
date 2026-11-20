@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight, Search, Sparkles, X } from 'lucide-vue-next'
+import { ArrowRight, Search, X } from 'lucide-vue-next'
 import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScrollLock } from '@/composables/useScrollLock'
@@ -153,12 +153,12 @@ const onKeydown = (e: KeyboardEvent) => {
       @click.self="close"
     >
       <div
-        class="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-2xl"
+        class="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)]"
         @keydown="onKeydown"
       >
         <!-- Input Bar -->
         <div class="flex items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3">
-          <Search class="h-5 w-5 shrink-0 text-[var(--domain-accent)]" />
+          <Search class="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
           <input
             ref="inputRef"
             v-model="query"
@@ -177,7 +177,7 @@ const onKeydown = (e: KeyboardEvent) => {
           </button>
           <button
             type="button"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-surface-muted)]"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
             aria-label="关闭搜索"
             @click="close"
           >
@@ -189,11 +189,11 @@ const onKeydown = (e: KeyboardEvent) => {
         <div
           class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-4 py-2 text-xs"
         >
-          <div class="text-[11px] font-medium text-[var(--text-muted)]">
-            当前范围：<span class="font-semibold text-[var(--text-primary)]">{{ currentDomainName }}</span>
+          <div class="font-mono text-[11px] text-[var(--text-muted)]">
+            范围：<span class="font-medium text-[var(--text-primary)]">{{ currentDomainName }}</span>
           </div>
 
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-0.5">
             <button
               v-for="opt in [
                 { value: 'all', label: '不限级别' },
@@ -203,11 +203,11 @@ const onKeydown = (e: KeyboardEvent) => {
               ]"
               :key="opt.value"
               type="button"
-              class="shrink-0 whitespace-nowrap rounded-md px-2 py-1 font-medium transition"
+              class="shrink-0 whitespace-nowrap rounded-md border px-2 py-0.5 font-medium transition"
               :class="
                 priorityFilter === opt.value
-                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]'
+                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               "
               @click="priorityFilter = opt.value as Priority | 'all'"
             >
@@ -220,15 +220,14 @@ const onKeydown = (e: KeyboardEvent) => {
         <div class="flex-1 overflow-y-auto p-2">
           <div
             v-if="!query.trim()"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-muted)]"
+            class="px-3 py-1.5 font-mono text-[11px] text-[var(--text-muted)]"
           >
-            <Sparkles class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
-            <span>{{ priorityFilter === 'all' ? '高频必考直达' : '按重要度直达' }}（直接输入关键词过滤全部题目）</span>
+            {{ priorityFilter === 'all' ? '高频必考直达' : '按重要度直达' }} · 输入关键词检索全量题目
           </div>
 
           <div
             v-else-if="hits[0]?.isRelaxedFallback"
-            class="mx-2 mb-1.5 rounded-lg bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300"
+            class="mx-2 mb-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300"
           >
             未找到全部关键词同时命中的题目，以下展示部分相关性匹配结果：
           </div>
@@ -240,14 +239,14 @@ const onKeydown = (e: KeyboardEvent) => {
             未找到匹配「{{ query }}」的题目，可尝试缩短或拆分关键词。
           </div>
 
-          <ul v-else class="space-y-1">
+          <ul v-else class="divide-y divide-[var(--border-subtle)]">
             <li v-for="(item, idx) in visibleItems" :key="item.id">
               <button
                 type="button"
-                class="flex w-full items-start justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition"
+                class="flex w-full items-start justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors"
                 :class="
                   idx === activeIndex
-                    ? 'bg-[var(--domain-accent-soft)]'
+                    ? 'bg-[var(--bg-hover)]'
                     : 'hover:bg-[var(--bg-surface-muted)]'
                 "
                 @mouseenter="activeIndex = idx"

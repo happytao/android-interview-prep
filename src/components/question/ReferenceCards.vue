@@ -19,20 +19,20 @@ function resolveUrl(url: string): string {
 function typeLabel(t: ReferenceItem['type']): string {
   if (t === 'official') return '官方文档'
   if (t === 'aosp') return 'AOSP 源码'
-  return '经典深度博客'
+  return '技术专栏'
 }
 </script>
 
 <template>
-  <section class="mt-8 space-y-3" aria-label="延伸参考资料">
+  <section class="mt-8 space-y-3 border-t border-[var(--border-subtle)] pt-6" aria-label="延伸参考资料">
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <h3 class="text-sm font-bold text-[var(--text-primary)]">权威延伸参考卡片</h3>
+      <h3 class="text-sm font-semibold text-[var(--text-primary)]">权威延伸参考</h3>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)] hover:border-[var(--domain-accent)] hover:text-[var(--text-primary)]"
+        class="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 text-[11px] font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         @click="studyStore.setUseCnAndroidDocs(!studyStore.state.useCnAndroidDocs)"
       >
-        <Globe class="h-3 w-3 text-[var(--domain-accent)]" />
+        <Globe class="h-3 w-3" />
         <span>{{ studyStore.state.useCnAndroidDocs ? '已切至 .google.cn 镜像' : '切至国内 .google.cn 镜像' }}</span>
       </button>
     </div>
@@ -44,21 +44,21 @@ function typeLabel(t: ReferenceItem['type']): string {
         :href="resolveUrl(refItem.url)"
         target="_blank"
         rel="noopener noreferrer"
-        class="group flex items-start justify-between gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 transition hover:border-[var(--domain-accent)]"
+        class="group flex items-start justify-between gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 transition-colors hover:bg-[var(--bg-hover)]"
       >
         <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5 text-[11px]">
-            <BookOpen v-if="refItem.type === 'official'" class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
-            <Code2 v-else-if="refItem.type === 'aosp'" class="h-3.5 w-3.5 text-indigo-500" />
-            <FileText v-else class="h-3.5 w-3.5 text-amber-500" />
-            <span class="font-semibold text-[var(--text-secondary)]">{{ typeLabel(refItem.type) }}</span>
-            <span class="text-[var(--text-muted)]">· 校验 {{ refItem.verifiedAt }}</span>
+          <div class="flex items-center gap-1.5 font-mono text-[11px] text-[var(--text-muted)]">
+            <BookOpen v-if="refItem.type === 'official'" class="h-3.5 w-3.5" />
+            <Code2 v-else-if="refItem.type === 'aosp'" class="h-3.5 w-3.5" />
+            <FileText v-else class="h-3.5 w-3.5" />
+            <span>{{ typeLabel(refItem.type) }}</span>
+            <span>· {{ refItem.verifiedAt }}</span>
           </div>
-          <div class="mt-1 line-clamp-2 text-xs font-semibold text-[var(--text-primary)] group-hover:text-[var(--domain-accent)]">
+          <div class="mt-1 line-clamp-2 text-xs font-medium text-[var(--text-primary)]">
             {{ refItem.title }}
           </div>
         </div>
-        <ExternalLink class="mt-1 h-4 w-4 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--domain-accent)]" />
+        <ExternalLink class="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--text-muted)] transition group-hover:text-[var(--text-primary)]" />
       </a>
     </div>
   </section>

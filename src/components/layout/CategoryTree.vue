@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bookmark, ChevronDown, ChevronRight } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useStudyStore } from '@/stores/studyStore'
 import type { CategoryNode, QuestionSummary } from '@/types/interview'
@@ -72,16 +72,18 @@ const categoryStats = (cat: CategoryNode) => {
 
 const statusDotClass = (id: string) => {
   const s = studyStore.getStatus(id)
-  if (s === 'mastered') return 'bg-emerald-500'
-  if (s === 'reviewing') return 'bg-orange-500'
-  return 'bg-slate-300 dark:bg-slate-600'
+  if (s === 'mastered') return 'bg-[var(--domain-accent)]'
+  if (s === 'reviewing') return 'bg-amber-500'
+  return 'bg-zinc-300 dark:bg-zinc-700'
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-3">
-    <!-- Filter Pills -->
-    <div class="grid grid-cols-4 gap-1 rounded-xl bg-[var(--bg-surface-muted)] p-1 text-[11px]">
+    <!-- Minimal Segmented Filter -->
+    <div
+      class="grid grid-cols-4 gap-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-0.5 text-[11px]"
+    >
       <button
         v-for="f in [
           { id: 'all', label: '全部' },
@@ -91,11 +93,11 @@ const statusDotClass = (id: string) => {
         ]"
         :key="f.id"
         type="button"
-        class="rounded-lg py-1 font-medium transition"
+        class="rounded py-1 font-medium transition"
         :class="
           filterMode === f.id
-            ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            ? 'border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]'
+            : 'border border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
         "
         @click="filterMode = f.id as typeof filterMode"
       >
@@ -103,70 +105,69 @@ const statusDotClass = (id: string) => {
       </button>
     </div>
 
-    <!-- Tree -->
-    <nav class="space-y-2" aria-label="知识分类目录">
+    <!-- Flat Divided Sidebar Tree -->
+    <nav class="divide-y divide-[var(--border-subtle)] border-y border-[var(--border-subtle)]" aria-label="知识分类目录">
       <div
         v-if="!categories.some(categoryHasMatches)"
-        class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-5 text-center text-xs text-[var(--text-muted)]"
+        class="px-2 py-6 text-center text-xs text-[var(--text-muted)]"
       >
         当前筛选下暂无匹配题目
       </div>
+
       <div
         v-for="cat in categories"
         :key="cat.id"
         v-show="categoryHasMatches(cat)"
-        class="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]"
       >
         <button
           type="button"
-          class="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition hover:bg-[var(--bg-surface-muted)]"
+          class="flex w-full items-center justify-between gap-2 px-1.5 py-2.5 text-left transition-colors hover:bg-[var(--bg-hover)]"
           @click="toggleL1(cat.id)"
         >
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5">
-              <span class="font-mono text-[11px] font-semibold text-[var(--domain-accent)]">
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
                 {{ String(cat.order).padStart(2, '0') }}
               </span>
-              <span class="truncate text-xs font-bold text-[var(--text-primary)]">
+              <span class="truncate text-xs font-semibold text-[var(--text-primary)]">
                 {{ cat.name }}
               </span>
             </div>
-            <div class="mt-1 flex items-center gap-2">
-              <div class="h-1 flex-1 overflow-hidden rounded-full bg-[var(--bg-surface-muted)]">
+            <div class="mt-1.5 flex items-center gap-2">
+              <div class="h-0.5 flex-1 overflow-hidden bg-[var(--bg-surface-muted)]">
                 <div
-                  class="h-full rounded-full bg-[var(--domain-accent)] transition-all duration-300"
+                  class="h-full bg-[var(--domain-accent)] transition-all duration-300"
                   :style="{
                     width: `${categoryStats(cat).total ? (categoryStats(cat).mastered / categoryStats(cat).total) * 100 : 0}%`,
                   }"
                 />
               </div>
-              <span class="font-mono text-[10px] text-[var(--text-muted)]">
+              <span class="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
                 {{ categoryStats(cat).mastered }}/{{ categoryStats(cat).total }}
               </span>
             </div>
           </div>
           <ChevronDown
             v-if="expandedL1.has(cat.id) || filterMode !== 'all'"
-            class="h-4 w-4 shrink-0 text-[var(--text-muted)]"
+            class="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]"
           />
-          <ChevronRight v-else class="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+          <ChevronRight v-else class="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]" />
         </button>
 
         <div
           v-if="expandedL1.has(cat.id) || filterMode !== 'all'"
-          class="border-t border-[var(--border-subtle)] bg-[var(--bg-canvas)]/40 px-2 py-2"
+          class="border-t border-[var(--border-subtle)] py-1.5 pl-1"
         >
           <div
             v-for="sub in cat.subcategories"
             :key="sub.id"
-            class="mb-2.5 last:mb-0"
+            class="mb-2 last:mb-0"
           >
             <template v-if="sub.questions.some(matchesFilter)">
               <div
-                class="px-2 py-1 text-[11px] font-semibold tracking-wide text-[var(--text-muted)]"
+                class="px-2 py-1 font-mono text-[10px] font-medium tracking-wide text-[var(--text-muted)]"
               >
-                {{ String(cat.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }} ·
-                {{ sub.name }}
+                {{ String(cat.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }} · {{ sub.name }}
               </div>
               <ul class="mt-0.5 space-y-0.5">
                 <li
@@ -175,11 +176,11 @@ const statusDotClass = (id: string) => {
                 >
                   <button
                     type="button"
-                    class="flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition"
+                    class="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors"
                     :class="
                       activeSlug === q.slug
-                        ? 'bg-[var(--domain-accent-soft)] font-semibold text-[var(--domain-accent)]'
-                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-muted)] hover:text-[var(--text-primary)]'
+                        ? 'bg-[var(--bg-surface-muted)] font-semibold text-[var(--text-primary)]'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                     "
                     @click="emit('select', q)"
                   >
@@ -188,10 +189,6 @@ const statusDotClass = (id: string) => {
                       :class="statusDotClass(q.id)"
                     />
                     <span class="min-w-0 flex-1 leading-snug">{{ q.title }}</span>
-                    <Bookmark
-                      v-if="studyStore.isBookmarked(q.id)"
-                      class="mt-0.5 h-3 w-3 shrink-0 fill-amber-400 text-amber-500"
-                    />
                   </button>
                 </li>
               </ul>

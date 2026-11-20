@@ -13,22 +13,22 @@ const primaryActiveDomain = computed(() => allDomains.find((d) => d.config.statu
 
 <template>
   <main class="mx-auto max-w-2xl px-4 py-14">
-    <div class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-xs sm:p-8">
-      <div class="inline-flex items-center gap-2 rounded-full bg-[var(--domain-accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--domain-accent)]">
+    <div class="border-b border-[var(--border-subtle)] pb-8">
+      <div class="inline-flex items-center gap-2 font-mono text-xs tracking-wider text-[var(--text-muted)] uppercase">
         <Compass class="h-3.5 w-3.5" />
-        <span>远期领域规划占位</span>
+        <span>planned domain</span>
       </div>
 
-      <h1 class="mt-3 text-2xl font-extrabold text-[var(--text-primary)]">
+      <h1 class="mt-3 text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
         {{ domainManifest?.config.name ?? domainId }} 题库 · 规划建设中
       </h1>
-      <p class="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+      <p class="mt-2.5 text-sm leading-relaxed text-[var(--text-secondary)]">
         {{ domainManifest?.config.tagline ?? '该技术领域已预留独立配色令牌与内容挂载点。' }}
       </p>
 
-      <div class="mt-5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-4 text-xs leading-relaxed text-[var(--text-secondary)]">
-        <div class="flex items-center gap-1.5 font-bold text-[var(--text-primary)]">
-          <FolderGit2 class="h-4 w-4 text-[var(--domain-accent)]" />
+      <div class="mt-6 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-4 text-xs leading-relaxed text-[var(--text-secondary)]">
+        <div class="flex items-center gap-1.5 font-semibold text-[var(--text-primary)]">
+          <FolderGit2 class="h-4 w-4 text-[var(--text-muted)]" />
           <span>零改代码扩展机制（已就绪）</span>
         </div>
         <p class="mt-1.5">
@@ -41,7 +41,7 @@ const primaryActiveDomain = computed(() => allDomains.find((d) => d.config.statu
 
       <RouterLink
         :to="primaryActiveDomain ? `/${primaryActiveDomain.config.id}` : '/'"
-        class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--domain-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--domain-accent-fg)]"
+        class="mt-6 inline-flex h-9 items-center gap-2 rounded-md bg-[var(--btn-primary-bg)] px-4 text-sm font-medium text-[var(--btn-primary-fg)] transition hover:opacity-90"
       >
         <Home class="h-4 w-4" />
         <span>回到已激活的 {{ primaryActiveDomain?.config.name ?? '' }} 题库</span>

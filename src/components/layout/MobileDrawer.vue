@@ -54,16 +54,16 @@ onUnmounted(() => {
       @click.self="close"
     >
       <aside
-        class="flex max-h-[82vh] w-full flex-col rounded-t-2xl border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-2xl md:h-full md:max-h-none md:w-80 md:rounded-none md:border-t-0 md:border-r"
+        class="flex max-h-[82vh] w-full flex-col rounded-t-lg border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] md:h-full md:max-h-none md:w-80 md:rounded-none md:border-t-0 md:border-r"
       >
         <div class="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
           <div>
-            <div class="text-sm font-bold text-[var(--text-primary)]">{{ domainName }} · 知识目录</div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">{{ domainName }} · 知识目录</div>
             <div class="text-[11px] text-[var(--text-muted)]">点击任一题目快速跳转</div>
           </div>
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--bg-surface-muted)] text-[var(--text-primary)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] text-[var(--text-primary)]"
             aria-label="关闭目录"
             @click="close"
           >

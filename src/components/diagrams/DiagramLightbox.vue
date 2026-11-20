@@ -88,7 +88,7 @@ onUnmounted(() => {
         <div class="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]"
             aria-label="缩小"
             @click="zoomOut"
           >
@@ -96,7 +96,7 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]"
             aria-label="放大"
             @click="zoomIn"
           >
@@ -104,7 +104,7 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]"
             aria-label="重置缩放"
             @click="resetZoom"
           >
@@ -112,7 +112,7 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--domain-accent)] text-[var(--domain-accent-fg)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]"
             aria-label="关闭全屏图解"
             @click="close"
           >
