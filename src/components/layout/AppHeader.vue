@@ -12,7 +12,7 @@ import {
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
-import { allDomains } from '@/domains/registry'
+import { getDomainManifest } from '@/domains/registry'
 import { useStudyStore } from '@/stores/studyStore'
 
 const props = defineProps<{
@@ -26,6 +26,7 @@ const emit = defineEmits<{
 
 const { mode, cycleTheme } = useTheme()
 const studyStore = useStudyStore()
+const currentDomain = computed(() => getDomainManifest(props.activeDomain))
 
 const needBackupAlert = computed(
   () =>
@@ -45,10 +46,10 @@ const themeLabel = computed(() => {
     class="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/92 backdrop-blur-md"
   >
     <div class="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-2 px-3 sm:px-5">
-      <!-- Left: Brand + Domain Pills -->
+      <!-- Left: Brand + Current Domain Badge -->
       <div class="flex min-w-0 items-center gap-3">
         <RouterLink
-          to="/"
+          :to="currentDomain && currentDomain.config.status === 'active' ? `/${currentDomain.config.id}` : '/'"
           class="flex shrink-0 items-center gap-2 rounded-lg py-1 pr-1.5 text-[var(--text-primary)] hover:opacity-90"
         >
           <span
@@ -59,27 +60,19 @@ const themeLabel = computed(() => {
           <span class="hidden whitespace-nowrap text-sm font-bold tracking-tight sm:inline">技术面试复习站</span>
         </RouterLink>
 
-        <nav class="hidden items-center gap-1 md:flex" aria-label="技术领域切换">
-          <RouterLink
-            v-for="d in allDomains"
-            :key="d.config.id"
-            :to="d.config.status === 'active' ? `/${d.config.id}` : `/${d.config.id}/planned`"
-            class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition xl:px-2.5"
-            :class="
-              props.activeDomain === d.config.id
-                ? 'bg-[var(--domain-accent-soft)] text-[var(--domain-accent)] font-semibold'
-                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-muted)] hover:text-[var(--text-primary)]'
-            "
+        <RouterLink
+          v-if="currentDomain"
+          :to="currentDomain.config.status === 'active' ? `/${currentDomain.config.id}` : `/${currentDomain.config.id}/planned`"
+          class="hidden shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg bg-[var(--domain-accent-soft)] px-2.5 py-1.5 text-xs font-semibold text-[var(--domain-accent)] md:inline-flex"
+        >
+          <span>{{ currentDomain.config.name }}</span>
+          <span
+            v-if="currentDomain.config.status === 'planned'"
+            class="rounded bg-[var(--bg-surface)] px-1 py-0.5 text-[10px] font-medium text-[var(--text-muted)]"
           >
-            <span>{{ d.config.name }}</span>
-            <span
-              v-if="d.config.status === 'planned'"
-              class="hidden rounded bg-[var(--bg-surface-muted)] px-1 py-0.5 text-[10px] text-[var(--text-muted)] xl:inline"
-            >
-              规划中
-            </span>
-          </RouterLink>
-        </nav>
+            规划中
+          </span>
+        </RouterLink>
       </div>
 
       <!-- Right: Actions -->

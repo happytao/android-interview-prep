@@ -4,7 +4,7 @@ import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScrollLock } from '@/composables/useScrollLock'
 import { useSearch, type SearchHit } from '@/composables/useSearch'
-import { allDomains, getDomainFlatQuestions } from '@/domains/registry'
+import { getDomainFlatQuestions, getDomainManifest } from '@/domains/registry'
 import { useStudyStore } from '@/stores/studyStore'
 import type { Priority } from '@/types/interview'
 import { extractHighlightFragments } from '@/utils/tokenizer'
@@ -27,18 +27,17 @@ const { warmup, searchQuestions } = useSearch()
 
 const inputRef = ref<HTMLInputElement | null>(null)
 const query = ref('')
-const domainFilter = ref<string | 'all'>('all')
 const priorityFilter = ref<Priority | 'all'>('all')
 const hits = ref<SearchHit[]>([])
 const activeIndex = ref(0)
 const isSearching = ref(false)
 
-const activeDomains = computed(() => allDomains.filter((d) => d.config.status === 'active'))
+const currentDomainName = computed(
+  () => getDomainManifest(props.activeDomain)?.config.name ?? props.activeDomain,
+)
 
 const defaultSuggestions = computed(() => {
-  const list = getDomainFlatQuestions(
-    domainFilter.value === 'all' ? props.activeDomain : domainFilter.value,
-  )
+  const list = getDomainFlatQuestions(props.activeDomain)
   if (priorityFilter.value === 'all') {
     return list.filter((q) => q.priority === 'must-know').slice(0, 8)
   }
@@ -76,7 +75,7 @@ const runSearch = async () => {
   isSearching.value = true
   try {
     const results = await searchQuestions(trimmed, {
-      domain: domainFilter.value,
+      domain: props.activeDomain,
       priority: priorityFilter.value,
     })
     if (gen === searchGen) {
@@ -90,7 +89,7 @@ const runSearch = async () => {
   }
 }
 
-watch([query, domainFilter, priorityFilter], () => {
+watch([query, priorityFilter, () => props.activeDomain], () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     void runSearch()
@@ -190,33 +189,8 @@ const onKeydown = (e: KeyboardEvent) => {
         <div
           class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-4 py-2 text-xs"
         >
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              class="rounded-md px-2 py-1 font-medium transition"
-              :class="
-                domainFilter === 'all'
-                  ? 'bg-[var(--domain-accent)] text-[var(--domain-accent-fg)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              "
-              @click="domainFilter = 'all'"
-            >
-              全部领域
-            </button>
-            <button
-              v-for="d in activeDomains"
-              :key="d.config.id"
-              type="button"
-              class="rounded-md px-2 py-1 font-medium transition"
-              :class="
-                domainFilter === d.config.id
-                  ? 'bg-[var(--domain-accent)] text-[var(--domain-accent-fg)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              "
-              @click="domainFilter = d.config.id"
-            >
-              {{ d.config.name }}
-            </button>
+          <div class="text-[11px] font-medium text-[var(--text-muted)]">
+            当前范围：<span class="font-semibold text-[var(--text-primary)]">{{ currentDomainName }}</span>
           </div>
 
           <div class="flex items-center gap-1">

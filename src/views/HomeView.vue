@@ -359,41 +359,5 @@ function isCategoryExpanded(id: string) {
         </div>
       </div>
     </section>
-
-    <!-- Multi-Domain Roadmap -->
-    <section class="mt-10 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 class="text-sm font-bold text-[var(--text-primary)]">多领域扩展路线图（零改核心代码接入）</h2>
-          <p class="mt-0.5 text-xs text-[var(--text-secondary)]">
-            一期专注打磨 Android 中级题库；后续学习前端、后端、运维、网络安全时，只需新建领域目录即可自动上线。
-          </p>
-        </div>
-      </div>
-
-      <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <RouterLink
-          v-for="d in allDomains"
-          :key="d.config.id"
-          :to="d.config.status === 'active' ? `/${d.config.id}` : `/${d.config.id}/planned`"
-          class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-3.5 transition hover:border-[var(--domain-accent)]"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-sm font-bold text-[var(--text-primary)]">{{ d.config.name }}</span>
-            <span
-              class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              :class="
-                d.config.status === 'active'
-                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
-              "
-            >
-              {{ d.config.status === 'active' ? `${d.questionCount} 题` : '规划中' }}
-            </span>
-          </div>
-          <p class="mt-1.5 line-clamp-2 text-xs text-[var(--text-secondary)]">{{ d.config.tagline }}</p>
-        </RouterLink>
-      </div>
-    </section>
   </main>
 </template>
