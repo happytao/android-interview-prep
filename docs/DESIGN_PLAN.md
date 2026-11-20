@@ -239,7 +239,7 @@ personal-website/
 2. **Stage 2B（交互增强与 5 大旗舰 SVG）**：落地 `DiagramShell` 套件与 5 个旗舰交互 SVG、懒加载 `MermaidBlock`、`DiagramLightbox`、自测折叠/自评闭环、JSON 导入导出预览与 PWA Manifest。
 3. **Stage 2C（分批内容精编与用户抽检）**：按 L1 分类分批将 `draft` 升格为 `published` 完整五段式题解，每完成 2–3 个 L1 分类可随时抽检口吻与深度是否贴合个人习惯。
 4. **Stage 2D（自动化验证与多端验收）**：运行 `vue-tsc --noEmit`、`vitest run`、`vite build`、`pnpm check:links` 与响应式/深浅色浏览器巡检。
-5. **Stage 2E（Gate 2 对抗代码审查）**：再次调用 **`claude-opus-5-5-high`** 进行源码、XSS、移动端与技术准确度红队审查，修复全部 P0/P1 问题后正式交付。
+5. **Stage 2E（Gate 2 对抗代码审查）**：调用 **`claude-opus-5-5-medium`**（若额度耗尽则切换至 `gemini-4-neon-high` 或 `gemini-4-argon-high` 并向用户说明）进行源码、XSS、移动端与技术准确度红队审查，修复全部 P0/P1 问题后正式交付。
 
 ---
 

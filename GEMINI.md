@@ -4,10 +4,10 @@ Read [AGENTS.md](./AGENTS.md) first — it is the canonical engineering constitu
 
 ## Antigravity-Specific Execution Rules
 
-1. **Mandatory Adversarial Reviews via Swarm (`claude-opus-5-5-high`)**:
-   - At **Gate 1 (Design & Syllabus)** and **Gate 2 (Post-Implementation Code)**, invoke the `swarm` tool to add a reviewer pinned to `model: "claude-opus-5-5-high"` (alongside `monitor` when `swarm_monitor` is available).
+1. **Mandatory Adversarial Reviews via Swarm**:
+   - **Gate 1 (Design & Syllabus)**: Pinned to `model: "claude-opus-5-5-high"` (already completed).
+   - **Gate 2 (Post-Implementation Code)**: Pinned to `model: "claude-opus-5-5-medium"` per user quota preference (alongside `monitor` when `swarm_monitor` is available). If `claude-opus-5-5-medium` runs out of quota, inform the user and switch to `gemini-4-neon-high` or `gemini-4-argon-high`.
    - Follow the exact procedures and checklists in [.agents/skills/adversarial-review/SKILL.md](./.agents/skills/adversarial-review/SKILL.md).
-   - Do not silently fall back to another model if `claude-opus-5-5-high` is unavailable or quota-exhausted; report the issue immediately.
 
 2. **Phase Gate Discipline**:
    - **Never** scaffold or write Vue/TS application code (`package.json`, `src/`, etc.) until the user explicitly reviews and approves `docs/DESIGN_PLAN.md` and `docs/ANDROID_SYLLABUS.md`.

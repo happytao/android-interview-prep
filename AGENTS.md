@@ -73,7 +73,7 @@ This project enforces two mandatory adversarial review gates using **`claude-opu
    - **STOP and obtain explicit user approval** on the syllabus and design before writing any Vue/TS application code.
 2. **Gate 2 — Post-Implementation Code Review (Before Final Sign-Off)**:
    - Run full automated verification (`vue-tsc --noEmit`, `vitest run`, `vite build`, content schema/link check).
-   - Run adversarial code review via `claude-opus-5-5-high` covering architecture, security/XSS, dark mode, mobile UX, CJK search, and technical accuracy.
+   - Run adversarial code review via **`claude-opus-5-5-medium`** (if `claude-opus-5-5-medium` quota is exhausted, report to the user and fall back to **`gemini-4-neon-high`** or **`gemini-4-argon-high`**) covering architecture, security/XSS, dark mode, mobile UX, CJK search, and technical accuracy.
    - Fix all `P0` (Blocker) and `P1` (Major) issues, archive findings in `docs/ADVERSARIAL_REVIEW_CODE.md`, and re-run all verification checks after final edits.
 
 ## 6. Git Conventions

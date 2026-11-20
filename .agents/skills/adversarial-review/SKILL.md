@@ -9,8 +9,8 @@ description: >-
 # Adversarial Review Workflow (`claude-opus-5-5-high`)
 
 This project mandates adversarial red-team reviews at two gates:
-1. **Gate 1 (Plan & Syllabus Review)**: After `docs/DESIGN_PLAN.md` and `docs/ANDROID_SYLLABUS.md` are drafted, before any application coding begins.
-2. **Gate 2 (Post-Code Review)**: After Phase 2 implementation and all automated checks pass, before final user sign-off.
+1. **Gate 1 (Plan & Syllabus Review)**: `claude-opus-5-5-high` — After `docs/DESIGN_PLAN.md` and `docs/ANDROID_SYLLABUS.md` are drafted, before any application coding begins.
+2. **Gate 2 (Post-Code Review)**: `claude-opus-5-5-medium` (with `gemini-4-neon-high` or `gemini-4-argon-high` fallback if Opus quota is exhausted, always informing the user) — After Phase 2 implementation and all automated checks pass, before final user sign-off.
 
 ## Step 1: Launch Swarm Reviewer
 
@@ -19,17 +19,17 @@ This project mandates adversarial red-team reviews at two gates:
    ```text
    swarm{action:"add", name:"monitor", brief:"You are this swarm's stall monitor. Load the swarm_monitor skill and follow it. Post only to break a stall."}
    ```
-3. Spawn the reviewer pinned strictly to `claude-opus-5-5-high` in `workspace:"inherit"` (read-only audit):
+3. Spawn or switch the reviewer pinned to the Gate model (`claude-opus-5-5-high` for Gate 1; `claude-opus-5-5-medium` for Gate 2, or `gemini-4-neon-high` / `gemini-4-argon-high` if Opus quota is exhausted) in `workspace:"inherit"` (read-only audit):
    ```text
    swarm{
      action: "add",
      name: "opus-reviewer",
-     model: "claude-opus-5-5-high",
+     model: "claude-opus-5-5-medium",
      workspace: "inherit",
      brief: "<Gate-specific red-team audit brief — see checklists below>"
    }
    ```
-   > If `opus-reviewer` already exists and is `waiting` from Gate 1, wake it via `post_message` mentioning `@opus-reviewer` with the Gate 2 code review prompt instead of creating a duplicate worker.
+   > If `opus-reviewer` already exists and is `waiting` from Gate 1, switch its model via `swarm{action:"model", name:"opus-reviewer", model:"claude-opus-5-5-medium"}` and wake it via `post_message` mentioning `@opus-reviewer` with the Gate 2 code review prompt instead of creating a duplicate worker.
 4. Wait for `@coordinator [done]` on the board via `swarm_wait` (or end the creation turn if board tools have not arrived yet).
 
 ## Step 2: Gate-Specific Audit Checklists
