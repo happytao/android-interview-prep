@@ -15,6 +15,7 @@ keywords:
   - 共享物理内存页
   - C/S 架构与安全鉴权
   - 传统 IPC 对比
+diagram: BinderMmapSvg
 references:
   - title: Android Source - Binder Overview
     url: https://source.android.com/docs/core/architecture/hidl/binder-ipc
