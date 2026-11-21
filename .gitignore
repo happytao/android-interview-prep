@@ -8,6 +8,10 @@ dist-ssr/
 .vite/
 coverage/
 
+# Deployment tarballs produced by local deploy scripts
+dist.tar.gz
+*.tar.gz
+
 # Local & environment files
 *.local
 .env
