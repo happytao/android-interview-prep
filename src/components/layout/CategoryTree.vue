@@ -126,15 +126,15 @@ const statusDotClass = (id: string) => {
         >
           <div class="min-w-0 flex-1">
             <div class="flex items-start gap-2">
-              <span class="mt-0.5 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
+              <span class="mt-0.5 font-mono text-xs tabular-nums text-[var(--text-muted)]">
                 {{ String(cat.order).padStart(2, '0') }}
               </span>
-              <span class="line-clamp-2 text-xs leading-snug font-semibold text-[var(--text-primary)]">
+              <span class="line-clamp-2 text-[13.5px] leading-snug font-semibold text-[var(--text-primary)]">
                 {{ cat.name }}
               </span>
             </div>
             <div class="mt-1.5 flex items-center gap-2">
-              <div class="h-1 flex-1 overflow-hidden rounded-full bg-[var(--bg-surface-muted)]">
+              <div class="h-1 flex-1 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.12]">
                 <div
                   class="h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--status-mastered)] transition-all duration-300"
                   :style="{
@@ -149,14 +149,14 @@ const statusDotClass = (id: string) => {
           </div>
           <ChevronDown
             v-if="expandedL1.has(cat.id) || filterMode !== 'all'"
-            class="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]"
+            class="h-4 w-4 shrink-0 text-[var(--text-muted)]"
           />
-          <ChevronRight v-else class="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]" />
+          <ChevronRight v-else class="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
         </button>
 
         <div
           v-if="expandedL1.has(cat.id) || filterMode !== 'all'"
-          class="mt-1 space-y-2.5 pb-1 pl-1"
+          class="mt-1.5 space-y-3 pb-2 pl-2"
         >
           <div
             v-for="sub in cat.subcategories"
@@ -164,22 +164,25 @@ const statusDotClass = (id: string) => {
           >
             <template v-if="sub.questions.some(matchesFilter)">
               <div
-                class="px-2.5 py-1 font-mono text-[10px] font-medium tracking-wide text-[var(--text-muted)]"
+                class="flex items-baseline gap-1.5 px-1.5 py-1 text-[12.5px] leading-snug font-semibold text-[var(--text-secondary)]"
               >
-                {{ String(cat.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }} · {{ sub.name }}
+                <span class="shrink-0 font-mono text-[11px] font-medium text-[var(--brand-blue)]">
+                  {{ String(cat.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }}
+                </span>
+                <span class="min-w-0 flex-1">{{ sub.name }}</span>
               </div>
-              <ul class="mt-0.5 space-y-0.5">
+              <ul class="mt-1 ml-2 space-y-0.5 border-l border-[var(--border-subtle)] pl-2">
                 <li
                   v-for="q in sub.questions.filter(matchesFilter)"
                   :key="q.id"
                 >
                   <button
                     type="button"
-                    class="flex w-full items-start gap-2 rounded-[10px] px-2.5 py-1.5 text-left text-xs transition-colors"
+                    class="flex w-full items-start gap-2 rounded-[9px] px-2.5 py-1.5 text-left text-xs transition-colors"
                     :class="
                       activeSlug === q.slug
                         ? 'bg-[var(--brand-blue-soft)] font-semibold text-[var(--brand-blue-text)]'
-                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+                        : 'font-normal text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                     "
                     @click="emit('select', q)"
                   >
