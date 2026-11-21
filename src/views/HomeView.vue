@@ -1,68 +1,27 @@
 <script setup lang="ts">
-import {
-  ArrowRight,
-  AudioWaveform,
-  Binary,
-  Bookmark,
-  Boxes,
-  Clock,
-  Cpu,
-  Flame,
-  Gauge,
-  Layers,
-  Network,
-  Play,
-  Shuffle,
-  SlidersHorizontal,
-  Workflow,
-  Wrench,
-  X,
-} from 'lucide-vue-next'
-import type { Component } from 'vue'
-import { computed, nextTick, ref, useId, watch } from 'vue'
+import { ArrowRight, ChevronDown, ChevronRight, Play, RotateCcw, Zap } from 'lucide-vue-next'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { allDomains, getDomainFlatQuestions, getDomainManifest, getQuestionById } from '@/domains/registry'
 import { useStudyStore } from '@/stores/studyStore'
 import type { CategoryNode, QuestionSummary } from '@/types/interview'
+
+type SyllabusFilter = 'all' | 'mastered' | 'due' | 'must-know' | 'diagrams' | 'bookmarked'
 
 const props = defineProps<{
   domainId: string
 }>()
 
 const studyStore = useStudyStore()
-const quickFilter = ref<'all' | 'must-know' | 'due' | 'bookmarked'>('all')
-const selectedCategoryId = ref<string | null>(null)
-const detailPanelRef = ref<HTMLElement | null>(null)
-const ringGradId = `progress-ring-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+const prefersReduced = usePrefersReducedMotion()
+
+const quickFilter = ref<SyllabusFilter>('all')
+const expandedL1Ids = ref<Set<string>>(new Set())
+const activeChapterId = ref<string>('')
+let chapterObserver: IntersectionObserver | null = null
 
 const domainManifest = computed(() => getDomainManifest(props.domainId) ?? allDomains[0]!)
 const allQuestions = computed(() => getDomainFlatQuestions(domainManifest.value.config.id))
-
-const iconMap: Record<string, Component> = {
-  Cpu,
-  Layers,
-  Workflow,
-  Sparkles: SlidersHorizontal,
-  SlidersHorizontal,
-  Boxes,
-  Network,
-  Gauge,
-  Wrench,
-  Binary,
-  AudioWaveform,
-}
-
-function getCategoryIcon(iconName?: string): Component {
-  return (iconName && iconMap[iconName]) || Layers
-}
-
-watch(
-  () => domainManifest.value.config.id,
-  () => {
-    quickFilter.value = 'all'
-    selectedCategoryId.value = null
-  },
-  { immediate: true },
-)
 
 const lastVisitedQuestion = computed(() => {
   const id = studyStore.state.lastVisitedId
@@ -72,7 +31,6 @@ const lastVisitedQuestion = computed(() => {
 })
 
 const firstQuestion = computed(() => allQuestions.value[0] ?? null)
-
 const dueSet = computed(() => new Set(studyStore.dueReviewIds))
 
 const domainStats = computed(() => {
@@ -81,7 +39,7 @@ const domainStats = computed(() => {
   let mustKnow = 0
   let due = 0
   let bookmarks = 0
-  let notes = 0
+  let diagrams = 0
 
   for (const q of allQuestions.value) {
     const s = studyStore.getStatus(q.id)
@@ -90,7 +48,7 @@ const domainStats = computed(() => {
     if (q.priority === 'must-know') mustKnow += 1
     if (dueSet.value.has(q.id)) due += 1
     if (studyStore.isBookmarked(q.id)) bookmarks += 1
-    if (studyStore.getNote(q.id).trim().length > 0) notes += 1
+    if (q.diagram) diagrams += 1
   }
 
   return {
@@ -100,72 +58,226 @@ const domainStats = computed(() => {
     mustKnow,
     due,
     bookmarks,
-    notes,
+    diagrams,
     percent: allQuestions.value.length ? Math.round((mastered / allQuestions.value.length) * 100) : 0,
   }
 })
 
-// Circular progress ring geometry (r=40 -> circumference = 251.33)
-const ringRadius = 40
-const ringCircumference = 2 * Math.PI * ringRadius
-const ringOffset = computed(() => {
-  const pct = Math.max(0, Math.min(100, domainStats.value.percent))
-  return ringCircumference * (1 - pct / 100)
-})
-
-function filterQuestions(list: QuestionSummary[]): QuestionSummary[] {
-  if (quickFilter.value === 'all') return list
-  if (quickFilter.value === 'must-know') return list.filter((q) => q.priority === 'must-know')
-  if (quickFilter.value === 'due') return list.filter((q) => dueSet.value.has(q.id))
-  return list.filter((q) => studyStore.isBookmarked(q.id))
+function matchesQuickFilter(q: QuestionSummary): boolean {
+  if (quickFilter.value === 'all') return true
+  if (quickFilter.value === 'mastered') return studyStore.getStatus(q.id) === 'mastered'
+  if (quickFilter.value === 'due') return dueSet.value.has(q.id)
+  if (quickFilter.value === 'must-know') return q.priority === 'must-know'
+  if (quickFilter.value === 'diagrams') return Boolean(q.diagram)
+  return studyStore.isBookmarked(q.id)
 }
 
-function categoryProgress(cat: CategoryNode) {
-  let total = 0
-  let mastered = 0
-  let matched = 0
-  for (const sub of cat.subcategories) {
-    for (const q of sub.questions) {
-      total += 1
-      if (studyStore.getStatus(q.id) === 'mastered') mastered += 1
-      if (filterQuestions([q]).length > 0) matched += 1
+interface ComputedSubcategory {
+  id: string
+  slug: string
+  name: string
+  description: string
+  order: number
+  questions: QuestionSummary[]
+}
+
+interface ComputedCategory {
+  cat: CategoryNode
+  total: number
+  mastered: number
+  matched: number
+  masteredPercent: number
+  subcategories: ComputedSubcategory[]
+}
+
+const computedCategories = computed<ComputedCategory[]>(() =>
+  domainManifest.value.categories.map((cat) => {
+    let total = 0
+    let mastered = 0
+    let matched = 0
+    const subcategories: ComputedSubcategory[] = []
+
+    for (const sub of cat.subcategories) {
+      const filtered: QuestionSummary[] = []
+      for (const q of sub.questions) {
+        total += 1
+        if (studyStore.getStatus(q.id) === 'mastered') mastered += 1
+        if (matchesQuickFilter(q)) {
+          matched += 1
+          filtered.push(q)
+        }
+      }
+      if (filtered.length > 0) {
+        subcategories.push({
+          id: sub.id,
+          slug: sub.slug,
+          name: sub.name,
+          description: sub.description,
+          order: sub.order,
+          questions: filtered,
+        })
+      }
     }
-  }
-  return { total, mastered, matched, percent: total ? Math.round((mastered / total) * 100) : 0 }
-}
 
-const visibleCategories = computed(() =>
-  domainManifest.value.categories.filter((cat) => categoryProgress(cat).matched > 0),
+    return {
+      cat,
+      total,
+      mastered,
+      matched,
+      masteredPercent: total ? Math.round((mastered / total) * 100) : 0,
+      subcategories,
+    }
+  }),
 )
 
-const selectedCategory = computed<CategoryNode | null>(() => {
-  if (!selectedCategoryId.value) return null
-  return visibleCategories.value.find((cat) => cat.id === selectedCategoryId.value) ?? null
+const visibleCategories = computed(() => computedCategories.value.filter((item) => item.matched > 0))
+const matchedTotalCount = computed(() =>
+  visibleCategories.value.reduce((acc, item) => acc + item.matched, 0),
+)
+
+const isFullSyllabus = computed(() => {
+  const cats = domainManifest.value.categories
+  return cats.length > 0 && cats.every((cat) => expandedL1Ids.value.has(cat.id))
 })
 
-// Auto-select first matching module when switching to a non-'all' filter
-watch(quickFilter, (val) => {
-  if (val !== 'all') {
-    const first = visibleCategories.value[0]
-    selectedCategoryId.value = first ? first.id : null
-  }
-})
-
-async function selectCategory(cat: CategoryNode) {
-  if (selectedCategoryId.value === cat.id) {
-    selectedCategoryId.value = null
+function setQuickFilter(next: SyllabusFilter) {
+  if (next !== 'all' && quickFilter.value === next) {
+    quickFilter.value = 'all'
     return
   }
-  selectedCategoryId.value = cat.id
-  await nextTick()
-  detailPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  quickFilter.value = next
 }
+
+function toggleCategory(id: string) {
+  const next = new Set(expandedL1Ids.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  expandedL1Ids.value = next
+}
+
+function setCompactMode() {
+  const first = domainManifest.value.categories[0]
+  expandedL1Ids.value = first ? new Set([first.id]) : new Set()
+}
+
+function setFullSyllabusMode() {
+  expandedL1Ids.value = new Set(domainManifest.value.categories.map((c) => c.id))
+}
+
+function isCategoryExpanded(id: string) {
+  if (quickFilter.value !== 'all') return true
+  return expandedL1Ids.value.has(id)
+}
+
+async function jumpToChapter(cat: CategoryNode) {
+  if (!expandedL1Ids.value.has(cat.id)) {
+    const next = new Set(expandedL1Ids.value)
+    next.add(cat.id)
+    expandedL1Ids.value = next
+  }
+  activeChapterId.value = cat.id
+  await nextTick()
+  const el = document.getElementById(`chapter-${cat.slug}`)
+  el?.scrollIntoView({
+    behavior: prefersReduced.value ? 'auto' : 'smooth',
+    block: 'start',
+  })
+}
+
+const setupChapterObserver = async () => {
+  chapterObserver?.disconnect()
+  chapterObserver = null
+  if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return
+
+  await nextTick()
+  const visibleIds = visibleCategories.value.map((item) => item.cat.id)
+  if (visibleIds.length === 0) {
+    activeChapterId.value = ''
+    return
+  }
+  if (!activeChapterId.value || !visibleIds.includes(activeChapterId.value)) {
+    activeChapterId.value = visibleIds[0]!
+  }
+
+  const elements = visibleCategories.value
+    .map((item) => document.getElementById(`chapter-${item.cat.slug}`))
+    .filter((el): el is HTMLElement => Boolean(el))
+  if (elements.length === 0) return
+
+  chapterObserver = new IntersectionObserver(
+    (entries) => {
+      const intersecting = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+      const id = intersecting[0]?.target.getAttribute('data-chapter-id')
+      if (id) activeChapterId.value = id
+    },
+    { rootMargin: '-96px 0px -65% 0px', threshold: 0 },
+  )
+
+  for (const el of elements) {
+    chapterObserver.observe(el)
+  }
+}
+
+watch(
+  () => domainManifest.value.config.id,
+  () => {
+    const first = domainManifest.value.categories[0]
+    expandedL1Ids.value = first ? new Set([first.id]) : new Set()
+    activeChapterId.value = first?.id ?? ''
+    quickFilter.value = 'all'
+    void setupChapterObserver()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => visibleCategories.value.map((c) => c.cat.id).join(','),
+  () => {
+    void setupChapterObserver()
+  },
+)
+
+onMounted(() => {
+  void setupChapterObserver()
+})
+
+onUnmounted(() => {
+  chapterObserver?.disconnect()
+  chapterObserver = null
+})
+
+const statMetrics = computed(() => [
+  { id: 'all' as SyllabusFilter, label: 'TOTAL', value: `${domainStats.value.total}` },
+  {
+    id: 'mastered' as SyllabusFilter,
+    label: 'MASTERED',
+    value: `${domainStats.value.percent}% (${domainStats.value.mastered}/${domainStats.value.total})`,
+  },
+  { id: 'due' as SyllabusFilter, label: 'DUE TODAY', value: `${domainStats.value.due}` },
+  { id: 'must-know' as SyllabusFilter, label: 'MUST-KNOW', value: `${domainStats.value.mustKnow}` },
+  {
+    id: 'diagrams' as SyllabusFilter,
+    label: 'INTERACTIVE DIAGRAMS',
+    value: `${domainStats.value.diagrams}`,
+  },
+])
+
+const activeFilterLabel = computed(() => {
+  if (quickFilter.value === 'mastered') return '已掌握'
+  if (quickFilter.value === 'due') return '今日待复习'
+  if (quickFilter.value === 'must-know') return '高频必考'
+  if (quickFilter.value === 'diagrams') return '交互式图解'
+  if (quickFilter.value === 'bookmarked') return '已收藏'
+  return ''
+})
 
 function statusDotClass(id: string) {
   const s = studyStore.getStatus(id)
   if (s === 'mastered') return 'bg-[var(--status-mastered)]'
   if (s === 'reviewing') return 'bg-[var(--status-reviewing)]'
-  return 'bg-black/15 dark:bg-white/20'
+  return 'bg-black/15 dark:bg-white/25'
 }
 
 function priorityLabel(p: QuestionSummary['priority']) {
@@ -176,415 +288,373 @@ function priorityLabel(p: QuestionSummary['priority']) {
 </script>
 
 <template>
-  <main class="pb-20">
-    <!-- Hero Section: 7:5 Split with Subtle Apple/Android Blue-Cyan Ambient Glow -->
+  <main class="pb-24">
+    <!-- Open Asymmetric Editorial Hero with Main Apple/Android Ambient Glow -->
     <section class="hero-ambient border-b border-[var(--border-subtle)]">
-      <div class="mx-auto max-w-[1360px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <div class="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10">
-          <!-- Left 7 cols: Brand Message & Capsule CTAs -->
-          <div class="lg:col-span-7">
-            <div
-              class="inline-flex items-center gap-2 rounded-full bg-[var(--brand-blue-soft)] px-3 py-1 font-mono text-[11px] font-semibold tracking-wider text-[var(--brand-blue-text)] uppercase"
+      <div class="mx-auto max-w-[1360px] px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div
+          class="inline-flex items-center gap-2 rounded-full bg-[var(--brand-blue-soft)] px-3 py-1 font-mono text-[11px] font-semibold tracking-wider text-[var(--brand-blue-text)] uppercase"
+        >
+          <span>{{ domainManifest.config.id }} engineering</span>
+          <span class="opacity-40">·</span>
+          <span>{{ domainManifest.categories.length }} modules / {{ domainStats.total }} topics</span>
+        </div>
+
+        <h1
+          class="mt-4 text-balance text-3xl font-bold tracking-[-0.03em] leading-[1.16] text-[var(--text-primary)] sm:text-4xl lg:text-[42px]"
+        >
+          原理驱动的 {{ domainManifest.config.name }} 知识图谱
+        </h1>
+
+        <p class="mt-3.5 max-w-2xl text-pretty text-sm leading-relaxed text-[var(--text-secondary)] sm:text-[15px]">
+          {{ domainManifest.config.tagline }}。全书按「答题思路 → 原理解析 → 图解流程 → 追问与关键词 → 权威参考」编排，支持三阶口述演练与间隔复习。
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <RouterLink
+            v-if="lastVisitedQuestion"
+            :to="`/${lastVisitedQuestion.domain}/${lastVisitedQuestion.slug}`"
+            class="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-5 text-sm font-medium text-[var(--btn-primary-fg)] shadow-[0_2px_10px_rgba(0,113,227,0.28)] transition hover:bg-[var(--btn-primary-hover)]"
+          >
+            <Play class="h-3.5 w-3.5 fill-current" />
+            <span>继续阅读：{{ lastVisitedQuestion.title.length > 18 ? `${lastVisitedQuestion.title.slice(0, 18)}…` : lastVisitedQuestion.title }}</span>
+          </RouterLink>
+          <RouterLink
+            v-else-if="firstQuestion"
+            :to="`/${firstQuestion.domain}/${firstQuestion.slug}`"
+            class="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-5 text-sm font-medium text-[var(--btn-primary-fg)] shadow-[0_2px_10px_rgba(0,113,227,0.28)] transition hover:bg-[var(--btn-primary-hover)]"
+          >
+            <Play class="h-3.5 w-3.5 fill-current" />
+            <span>开始系统阅读</span>
+          </RouterLink>
+
+          <RouterLink
+            :to="{ path: '/mock', query: { domain: domainManifest.config.id } }"
+            class="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-5 text-sm font-medium text-[var(--text-primary)] shadow-[var(--shadow-pill)] transition hover:bg-[var(--bg-hover)]"
+          >
+            <Zap class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
+            <span>进入沉浸演练</span>
+            <span
+              v-if="domainStats.due > 0"
+              class="rounded-full bg-[var(--brand-blue-soft)] px-2 py-0.5 text-xs font-semibold tabular-nums text-[var(--brand-blue-text)]"
             >
-              <span>{{ domainManifest.config.id }} engineering</span>
-              <span class="opacity-40">·</span>
-              <span>{{ domainManifest.categories.length }} modules / {{ domainStats.total }} topics</span>
-            </div>
-
-            <h1
-              class="mt-4 text-balance text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl lg:text-[40px] lg:leading-[1.16]"
-            >
-              原理驱动的 {{ domainManifest.config.name }} 知识图谱
-            </h1>
-
-            <p class="mt-4 max-w-[540px] text-pretty text-sm leading-relaxed text-[var(--text-secondary)] sm:text-[15px]">
-              {{ domainManifest.config.tagline }}。每道题按「答题思路 → 原理解析 → 图解流程 → 追问与关键词 → 权威参考」编排，支持自测遮罩与间隔复习。
-            </p>
-
-            <div class="mt-7 flex flex-wrap items-center gap-3">
-              <RouterLink
-                v-if="lastVisitedQuestion"
-                :to="`/${lastVisitedQuestion.domain}/${lastVisitedQuestion.slug}`"
-                class="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-5 text-sm font-medium text-[var(--btn-primary-fg)] shadow-[0_2px_10px_rgba(0,113,227,0.28)] transition hover:bg-[var(--btn-primary-hover)]"
-              >
-                <Play class="h-3.5 w-3.5 fill-current" />
-                <span>继续学习：{{ lastVisitedQuestion.title.length > 16 ? `${lastVisitedQuestion.title.slice(0, 16)}…` : lastVisitedQuestion.title }}</span>
-              </RouterLink>
-              <RouterLink
-                v-else-if="firstQuestion"
-                :to="`/${firstQuestion.domain}/${firstQuestion.slug}`"
-                class="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-5 text-sm font-medium text-[var(--btn-primary-fg)] shadow-[0_2px_10px_rgba(0,113,227,0.28)] transition hover:bg-[var(--btn-primary-hover)]"
-              >
-                <Play class="h-3.5 w-3.5 fill-current" />
-                <span>开始系统复习</span>
-              </RouterLink>
-
-              <RouterLink
-                :to="{ path: '/mock', query: { domain: domainManifest.config.id } }"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-5 text-sm font-medium text-[var(--text-primary)] shadow-[var(--shadow-pill)] transition hover:bg-[var(--bg-hover)]"
-              >
-                <Shuffle class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
-                <span>随机模拟抽题</span>
-              </RouterLink>
-            </div>
-          </div>
-
-          <!-- Right 5 cols: Learning Dashboard Bento Card -->
-          <div class="lg:col-span-5">
-            <div class="bento-card rounded-[20px] p-6">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-semibold tracking-tight text-[var(--text-primary)]">
-                  复习进度仪表盘
-                </span>
-                <span class="font-mono text-[11px] text-[var(--text-muted)]">
-                  本地离线同步
-                </span>
-              </div>
-
-              <div class="mt-5 flex items-center gap-5 sm:gap-6">
-                <!-- Circular Progress Ring -->
-                <div class="relative flex h-25 w-25 shrink-0 items-center justify-center">
-                  <svg class="h-25 w-25 -rotate-90" viewBox="0 0 96 96" aria-hidden="true">
-                    <defs>
-                      <linearGradient :id="ringGradId" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="var(--brand-blue)" />
-                        <stop offset="100%" stop-color="var(--status-mastered)" />
-                      </linearGradient>
-                    </defs>
-                    <circle
-                      cx="48"
-                      cy="48"
-                      :r="ringRadius"
-                      fill="none"
-                      stroke="var(--brand-blue-soft)"
-                      stroke-width="8.5"
-                    />
-                    <circle
-                      cx="48"
-                      cy="48"
-                      :r="ringRadius"
-                      fill="none"
-                      :stroke="`url(#${ringGradId})`"
-                      stroke-width="8.5"
-                      stroke-linecap="round"
-                      :stroke-dasharray="ringCircumference"
-                      :stroke-dashoffset="ringOffset"
-                      class="transition-all duration-500"
-                    />
-                  </svg>
-                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="font-mono text-lg font-bold tracking-tight text-[var(--text-primary)]">
-                      {{ domainStats.percent }}%
-                    </span>
-                    <span class="font-mono text-[10px] text-[var(--text-muted)]">
-                      {{ domainStats.mastered === 0 ? '待开启' : `${domainStats.mastered}/${domainStats.total}` }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Right Micro-Stat List with Crisp Hairline Dividers -->
-                <div class="min-w-0 flex-1 divide-y divide-[var(--border-subtle)]">
-                  <button
-                    type="button"
-                    class="flex w-full items-center justify-between rounded-[8px] px-2 py-2.5 text-left transition hover:bg-[var(--bg-hover)]"
-                    @click="quickFilter = 'due'"
-                  >
-                    <span class="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                      <Clock class="h-3.5 w-3.5 text-[var(--status-reviewing)]" />
-                      <span>今日待复习</span>
-                    </span>
-                    <span class="font-mono text-sm font-semibold text-[var(--text-primary)]">
-                      {{ domainStats.due }}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    class="flex w-full items-center justify-between rounded-[8px] px-2 py-2.5 text-left transition hover:bg-[var(--bg-hover)]"
-                    @click="quickFilter = 'must-know'"
-                  >
-                    <span class="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                      <Flame class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
-                      <span>高频必考</span>
-                    </span>
-                    <span class="font-mono text-sm font-semibold text-[var(--text-primary)]">
-                      {{ domainStats.mustKnow }}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    class="flex w-full items-center justify-between rounded-[8px] px-2 py-2.5 text-left transition hover:bg-[var(--bg-hover)]"
-                    @click="quickFilter = 'bookmarked'"
-                  >
-                    <span class="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                      <Bookmark class="h-3.5 w-3.5 text-[var(--status-mastered)]" />
-                      <span>收藏 / 笔记</span>
-                    </span>
-                    <span class="font-mono text-sm font-semibold text-[var(--text-primary)]">
-                      {{ domainStats.bookmarks }}
-                      <span class="text-xs font-normal text-[var(--text-muted)]">/ {{ domainStats.notes }}</span>
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+              待复习 {{ domainStats.due }}
+            </span>
+          </RouterLink>
         </div>
       </div>
     </section>
 
-    <!-- Main Bento Knowledge Directory -->
-    <section class="mx-auto max-w-[1360px] px-4 pt-9 sm:px-6 sm:pt-11 lg:px-8">
-      <!-- Directory Header & iOS/macOS Segmented Control -->
-      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-[var(--text-primary)] sm:text-2xl">
-            核心知识模块
-          </h2>
-          <p class="mt-1 text-xs text-[var(--text-muted)] sm:text-sm">
-            点击任意模块卡片展开二级专题与题目清单，按原理脉络逐个击破。
-          </p>
-        </div>
-
-        <div
-          class="inline-flex flex-wrap gap-1 self-start rounded-[12px] bg-[var(--bg-segmented)] p-1 text-xs sm:self-auto"
-          role="tablist"
-          aria-label="题目快速筛选"
-        >
+    <div class="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-8">
+      <!-- Borderless Horizontal Metric Stat Strip -->
+      <section
+        class="border-b border-[var(--border-subtle)] pt-1"
+        aria-label="题库进度与筛选指标"
+      >
+        <div class="flex flex-wrap items-stretch gap-x-5 gap-y-0 sm:gap-x-8">
           <button
-            v-for="tab in [
-              { id: 'all', label: `全部 (${domainStats.total})` },
-              { id: 'must-know', label: `高频必考 (${domainStats.mustKnow})` },
-              { id: 'due', label: `待复习 (${domainStats.due})` },
-              { id: 'bookmarked', label: `收藏 (${domainStats.bookmarks})` },
-            ]"
-            :key="tab.id"
+            v-for="metric in statMetrics"
+            :key="metric.id"
             type="button"
-            role="tab"
-            :aria-selected="quickFilter === tab.id"
-            class="rounded-[9px] px-3 py-1.5 font-medium transition"
+            class="-mb-px inline-flex min-h-[44px] items-center gap-2 border-b-2 py-2.5 font-mono text-xs tabular-nums transition-colors"
             :class="
-              quickFilter === tab.id
-                ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-pill)]'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              quickFilter === metric.id
+                ? 'border-[var(--brand-blue)] font-semibold text-[var(--text-primary)]'
+                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             "
-            @click="quickFilter = tab.id as typeof quickFilter"
+            :aria-pressed="quickFilter === metric.id"
+            @click="setQuickFilter(metric.id)"
           >
-            {{ tab.label }}
+            <span class="tracking-wider uppercase">{{ metric.label }}</span>
+            <span
+              class="text-[12.5px]"
+              :class="quickFilter === metric.id ? 'text-[var(--brand-blue-text)]' : 'text-[var(--text-primary)]'"
+            >
+              {{ metric.value }}
+            </span>
           </button>
         </div>
-      </div>
+      </section>
 
-      <!-- Empty Filter State -->
-      <div
-        v-if="visibleCategories.length === 0"
-        class="bento-card mt-6 rounded-[20px] px-6 py-12 text-center"
-      >
-        <p class="text-sm font-semibold text-[var(--text-primary)]">
-          {{ quickFilter === 'due' ? '今日待复习队列已清空' : '当前筛选条件下暂无匹配题目' }}
-        </p>
-        <p class="mt-1.5 text-xs text-[var(--text-muted)]">
-          在题解页面标记「需复习」或「收藏本题」后，对应题目会自动归档到这里。
-        </p>
-        <button
-          type="button"
-          class="mt-5 inline-flex h-9 items-center rounded-full bg-[var(--btn-primary-bg)] px-5 text-xs font-medium text-[var(--btn-primary-fg)] transition hover:bg-[var(--btn-primary-hover)]"
-          @click="quickFilter = 'all'"
-        >
-          查看全部题目
-        </button>
-      </div>
-
-      <!-- Bento Card Grid (10 L1 Modules) -->
-      <div
-        v-else
-        class="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
-      >
-        <button
-          v-for="cat in visibleCategories"
-          :key="cat.id"
-          type="button"
-          class="bento-card-interactive group flex flex-col rounded-[18px] p-5 text-left"
-          :class="
-            selectedCategoryId === cat.id
-              ? 'ring-2 ring-[var(--brand-blue)] ring-offset-2 ring-offset-[var(--bg-canvas)]'
-              : ''
-          "
-          :aria-expanded="selectedCategoryId === cat.id"
-          @click="selectCategory(cat)"
-        >
-          <!-- Card Header: 40x40 Soft Blue Icon + Progress Counter -->
-          <div class="flex items-start justify-between gap-3">
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[var(--brand-blue-soft)] text-[var(--brand-blue)] transition-colors group-hover:bg-[var(--brand-blue)] group-hover:text-white"
+      <!-- Index Toolbar -->
+      <section class="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <div
+            class="inline-flex items-center gap-0.5 rounded-[10px] bg-[var(--bg-segmented)] p-1 text-xs"
+            role="group"
+            aria-label="目录展开模式"
+          >
+            <button
+              type="button"
+              class="min-h-8 rounded-[7px] px-3 py-1 font-medium transition disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0"
+              :class="
+                !isFullSyllabus
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-pill)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              "
+              :disabled="quickFilter !== 'all'"
+              @click="setCompactMode"
             >
-              <component :is="getCategoryIcon(cat.icon)" class="h-5 w-5" />
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="font-mono text-[11px] text-[var(--text-muted)]">
-                {{ String(cat.order).padStart(2, '0') }}
-              </span>
-              <span
-                class="rounded-full bg-[var(--bg-surface-muted)] px-2.5 py-0.5 font-mono text-[11px] font-medium text-[var(--text-secondary)]"
-              >
-                {{ categoryProgress(cat).mastered }} / {{ categoryProgress(cat).total }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Card Body: Title & 2-Line Summary -->
-          <h3 class="mt-4 text-[16px] font-semibold tracking-tight text-[var(--text-primary)]">
-            {{ cat.name }}
-          </h3>
-          <p class="mt-1.5 line-clamp-2 flex-1 text-xs leading-relaxed text-[var(--text-muted)]">
-            {{ cat.description }}
-          </p>
-
-          <!-- Card Footer: 4px Progress Bar + Topic Count -->
-          <div class="mt-5 border-t border-[var(--border-subtle)] pt-3.5">
-            <div class="h-1 w-full overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.12]">
-              <div
-                class="h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--status-mastered)] transition-all duration-300"
-                :style="{ width: `${categoryProgress(cat).percent}%` }"
-              />
-            </div>
-            <div class="mt-2.5 flex items-center justify-between text-[11px]">
-              <span class="font-mono text-[var(--text-muted)]">
-                {{ cat.subcategories.length }} 专题 · {{ categoryProgress(cat).matched }} 题
-              </span>
-              <span
-                class="inline-flex items-center gap-1 font-medium text-[var(--brand-blue)] transition-opacity"
-              >
-                <span>{{ selectedCategoryId === cat.id ? '已展开' : '查看题目' }}</span>
-                <ArrowRight class="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </div>
-          </div>
-        </button>
-      </div>
-
-      <!-- Full-Width Expandable Detail Panel for Selected Module -->
-      <div
-        v-if="selectedCategory"
-        ref="detailPanelRef"
-        class="bento-card mt-6 overflow-hidden rounded-[20px]"
-      >
-        <div
-          class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-5 py-4 sm:px-6"
-        >
-          <div class="flex min-w-0 items-center gap-3.5">
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[var(--brand-blue)] text-white"
+              紧凑章节
+            </button>
+            <button
+              type="button"
+              class="min-h-8 rounded-[7px] px-3 py-1 font-medium transition disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0"
+              :class="
+                isFullSyllabus
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-pill)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              "
+              :disabled="quickFilter !== 'all'"
+              @click="setFullSyllabusMode"
             >
-              <component :is="getCategoryIcon(selectedCategory.icon)" class="h-5 w-5" />
-            </div>
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="font-mono text-xs font-medium text-[var(--brand-blue)]">
-                  MODULE {{ String(selectedCategory.order).padStart(2, '0') }}
-                </span>
-                <h3 class="text-base font-bold text-[var(--text-primary)] sm:text-lg">
-                  {{ selectedCategory.name }}
-                </h3>
-              </div>
-              <p class="mt-0.5 truncate text-xs text-[var(--text-muted)]">
-                {{ selectedCategory.description }}
-              </p>
-            </div>
+              展开全书大纲
+            </button>
           </div>
 
           <button
             type="button"
-            class="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
-            @click="selectedCategoryId = null"
+            class="inline-flex min-h-8 items-center gap-1.5 rounded-[10px] border px-3 py-1 text-xs font-medium transition sm:min-h-0"
+            :class="
+              quickFilter === 'bookmarked'
+                ? 'border-[var(--brand-blue)] bg-[var(--brand-blue-soft)] text-[var(--brand-blue-text)]'
+                : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
+            "
+            @click="setQuickFilter('bookmarked')"
           >
-            <X class="h-3.5 w-3.5" />
-            <span>收起面板</span>
+            <span>收藏</span>
+            <span class="tabular-nums">{{ domainStats.bookmarks }}</span>
           </button>
         </div>
 
-        <div class="divide-y divide-[var(--border-subtle)]">
-          <div
-            v-for="sub in selectedCategory.subcategories"
-            :key="sub.id"
-            v-show="filterQuestions(sub.questions).length > 0"
+        <div v-if="quickFilter !== 'all'" class="flex items-center gap-2 text-xs">
+          <span
+            class="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-blue-soft)] px-3 py-1 text-xs font-medium text-[var(--brand-blue-text)]"
           >
-            <!-- L2 Subcategory Header -->
-            <div
-              class="flex items-center justify-between gap-3 bg-[var(--bg-surface-muted)]/40 px-5 py-2.5 sm:px-6"
+            <span class="h-1.5 w-1.5 rounded-full bg-[var(--brand-blue)]" />
+            <span>筛选：{{ activeFilterLabel }} ({{ matchedTotalCount }})</span>
+          </span>
+          <button
+            type="button"
+            class="inline-flex min-h-8 items-center gap-1 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] sm:min-h-0"
+            @click="quickFilter = 'all'"
+          >
+            <RotateCcw class="h-3 w-3" />
+            <span>重置</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2-Column Editorial Chapter Index + Single-Column Spacious Subsections -->
+      <section class="mt-5">
+        <div
+          v-if="visibleCategories.length === 0"
+          class="bento-card rounded-[16px] px-6 py-14 text-center"
+        >
+          <p class="text-sm font-medium text-[var(--text-primary)]">
+            {{
+              quickFilter === 'due'
+                ? '今日待复习队列已清空'
+                : quickFilter === 'mastered'
+                  ? '暂未标记已掌握的题目，翻开一章开始阅读并打卡吧'
+                  : '当前筛选条件下暂无匹配题目'
+            }}
+          </p>
+          <button
+            type="button"
+            class="mt-4 inline-flex min-h-9 items-center rounded-full bg-[var(--btn-primary-bg)] px-5 text-xs font-medium text-[var(--btn-primary-fg)] transition hover:bg-[var(--btn-primary-hover)]"
+            @click="quickFilter = 'all'"
+          >
+            查看全部 {{ domainStats.total }} 道题目
+          </button>
+        </div>
+
+        <div v-else class="lg:grid lg:grid-cols-12 lg:gap-8">
+          <!-- Left Sticky Chapter Anchor Rail -->
+          <aside class="hidden lg:col-span-3 lg:block">
+            <nav
+              class="sidebar-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2"
+              aria-label="章节目录锚点"
             >
-              <div class="flex min-w-0 items-baseline gap-2.5">
-                <span class="font-mono text-[11px] font-medium text-[var(--brand-blue)]">
-                  {{ String(selectedCategory.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }}
-                </span>
-                <h4 class="truncate text-xs font-semibold text-[var(--text-primary)] sm:text-sm">
-                  {{ sub.name }}
-                </h4>
-                <span class="hidden truncate text-xs text-[var(--text-muted)] lg:inline">
-                  · {{ sub.description }}
-                </span>
+              <div class="px-2.5 font-mono text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                Chapters · 章节锚点
               </div>
-              <span class="shrink-0 font-mono text-[11px] text-[var(--text-muted)]">
-                {{ filterQuestions(sub.questions).length }} 题
-              </span>
-            </div>
+              <ul class="mt-2.5 border-l border-[var(--border-subtle)] text-xs">
+                <li v-for="item in visibleCategories" :key="item.cat.id">
+                  <button
+                    type="button"
+                    class="-ml-px flex w-full items-center justify-between gap-2 border-l-2 py-2 pr-2 pl-3 text-left transition-colors"
+                    :class="
+                      activeChapterId === item.cat.id
+                        ? 'border-[var(--brand-blue)] font-semibold text-[var(--brand-blue)]'
+                        : 'border-transparent text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
+                    "
+                    @click="jumpToChapter(item.cat)"
+                  >
+                    <span class="flex min-w-0 items-baseline gap-2">
+                      <span class="shrink-0 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
+                        {{ String(item.cat.order).padStart(2, '0') }}
+                      </span>
+                      <span class="truncate">{{ item.cat.name }}</span>
+                    </span>
+                    <span class="shrink-0 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
+                      {{ item.mastered }}/{{ item.total }}
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </aside>
 
-            <!-- Question List Rows -->
-            <ul class="divide-y divide-[var(--border-subtle)]">
-              <li v-for="q in filterQuestions(sub.questions)" :key="q.id">
-                <RouterLink
-                  :to="`/${q.domain}/${q.slug}`"
-                  class="group flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-[var(--bg-hover)] sm:px-6"
+          <!-- Right Chapter Accordion with Single-Column Spacious Subsections -->
+          <div class="lg:col-span-9">
+            <div class="bento-card overflow-hidden rounded-[16px] divide-y divide-[var(--border-subtle)]">
+              <div
+                v-for="item in visibleCategories"
+                :id="`chapter-${item.cat.slug}`"
+                :key="item.cat.id"
+                :data-chapter-id="item.cat.id"
+                class="scroll-mt-20"
+              >
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-[var(--bg-hover)] sm:px-6 sm:py-5"
+                  :aria-expanded="isCategoryExpanded(item.cat.id)"
+                  @click="toggleCategory(item.cat.id)"
                 >
-                  <div class="flex min-w-0 flex-1 items-center gap-3">
+                  <div class="flex min-w-0 flex-1 items-baseline gap-3 sm:gap-4">
                     <span
-                      class="h-2 w-2 shrink-0 rounded-full"
-                      :class="statusDotClass(q.id)"
-                    />
-                    <span class="font-mono text-[11px] text-[var(--text-muted)]">
-                      {{ String(q.order).padStart(2, '0') }}
-                    </span>
-                    <span
-                      class="min-w-0 flex-1 truncate text-sm font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--brand-blue)]"
-                    >
-                      {{ q.title }}
-                    </span>
-                  </div>
-
-                  <div class="flex shrink-0 items-center gap-2">
-                    <span
-                      v-if="q.diagram"
-                      class="hidden rounded-full bg-[var(--brand-blue-soft)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--brand-blue-text)] sm:inline"
-                    >
-                      交互图解
-                    </span>
-                    <span
-                      v-else-if="q.hasMermaid"
-                      class="hidden rounded-full bg-[var(--bg-surface-muted)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-muted)] sm:inline"
-                    >
-                      流程图
-                    </span>
-                    <span
-                      class="rounded-full px-2 py-0.5 font-mono text-[10px] font-medium"
+                      class="shrink-0 font-mono text-sm font-medium tabular-nums"
                       :class="
-                        q.priority === 'must-know'
-                          ? 'bg-[var(--brand-blue-soft)] text-[var(--brand-blue-text)]'
-                          : 'bg-[var(--bg-surface-muted)] text-[var(--text-muted)]'
+                        isCategoryExpanded(item.cat.id)
+                          ? 'text-[var(--brand-blue)]'
+                          : 'text-[var(--text-muted)]'
                       "
                     >
-                      {{ priorityLabel(q.priority) }}
+                      {{ String(item.cat.order).padStart(2, '0') }}
                     </span>
-                    <ArrowRight
-                      class="h-3.5 w-3.5 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-blue)]"
+                    <div class="min-w-0 flex-1">
+                      <h2 class="text-base font-semibold tracking-tight text-[var(--text-primary)] sm:text-[17px]">
+                        {{ item.cat.name }}
+                      </h2>
+                      <p class="mt-0.5 line-clamp-1 text-xs text-[var(--text-muted)] sm:text-[13px]">
+                        {{ item.cat.description }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex shrink-0 items-center gap-3">
+                    <div
+                      class="hidden h-[3px] w-20 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.12] sm:block"
+                      aria-hidden="true"
+                    >
+                      <div
+                        class="h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--status-mastered)] transition-[width] duration-300"
+                        :style="{ width: `${item.masteredPercent}%` }"
+                      />
+                    </div>
+                    <span class="font-mono text-xs tabular-nums text-[var(--text-muted)]">
+                      {{ item.mastered }}/{{ item.total }}
+                    </span>
+                    <ChevronDown
+                      v-if="isCategoryExpanded(item.cat.id)"
+                      class="h-4 w-4 text-[var(--text-muted)]"
+                    />
+                    <ChevronRight
+                      v-else
+                      class="h-4 w-4 text-[var(--text-muted)]"
                     />
                   </div>
-                </RouterLink>
-              </li>
-            </ul>
+                </button>
+
+                <!-- Paradigm C Style Spacious Single-Column Subsections -->
+                <div
+                  v-if="isCategoryExpanded(item.cat.id)"
+                  class="divide-y divide-[var(--border-subtle)] border-t border-[var(--border-subtle)]"
+                >
+                  <div
+                    v-for="sub in item.subcategories"
+                    :key="sub.id"
+                  >
+                    <!-- L2 Sub-Header Band -->
+                    <div
+                      class="flex items-center justify-between gap-3 bg-[var(--bg-surface-muted)]/60 px-4 py-2.5 sm:px-6"
+                    >
+                      <div class="flex min-w-0 items-baseline gap-2.5">
+                        <span class="shrink-0 font-mono text-xs font-medium tabular-nums text-[var(--brand-blue)]">
+                          {{ String(item.cat.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }}
+                        </span>
+                        <h3 class="truncate text-xs font-semibold text-[var(--text-primary)] sm:text-[13px]">
+                          {{ sub.name }}
+                        </h3>
+                        <span class="hidden truncate text-xs text-[var(--text-muted)] lg:inline">
+                          · {{ sub.description }}
+                        </span>
+                      </div>
+                      <span class="shrink-0 text-xs tabular-nums text-[var(--text-muted)]">
+                        {{ sub.questions.length }} 题
+                      </span>
+                    </div>
+
+                    <!-- Full-Width Single-Column Question Rows -->
+                    <ul class="divide-y divide-[var(--border-subtle)] border-t border-[var(--border-subtle)]">
+                      <li v-for="q in sub.questions" :key="q.id">
+                        <RouterLink
+                          :to="`/${q.domain}/${q.slug}`"
+                          class="group flex min-h-[46px] items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-[var(--bg-hover)] sm:px-6"
+                        >
+                          <div class="flex min-w-0 flex-1 items-center gap-3">
+                            <span
+                              class="h-1.5 w-1.5 shrink-0 rounded-full"
+                              :class="statusDotClass(q.id)"
+                            />
+                            <span class="shrink-0 font-mono text-xs tabular-nums text-[var(--text-muted)]">
+                              {{ String(q.order).padStart(2, '0') }}
+                            </span>
+                            <span
+                              class="min-w-0 flex-1 text-sm font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--brand-blue)]"
+                            >
+                              {{ q.title }}
+                            </span>
+                          </div>
+
+                          <div class="flex shrink-0 items-center gap-2">
+                            <span
+                              v-if="q.diagram"
+                              class="hidden rounded-full bg-[var(--brand-blue-soft)] px-2.5 py-0.5 text-xs font-medium text-[var(--brand-blue-text)] sm:inline-flex"
+                            >
+                              交互图解
+                            </span>
+                            <span
+                              v-else-if="q.hasMermaid"
+                              class="hidden rounded-full bg-[var(--bg-surface-muted)] px-2.5 py-0.5 text-xs text-[var(--text-muted)] sm:inline-flex"
+                            >
+                              流程图
+                            </span>
+                            <span
+                              class="rounded-full px-2.5 py-0.5 text-xs"
+                              :class="
+                                q.priority === 'must-know'
+                                  ? 'bg-[var(--brand-blue-soft)] font-medium text-[var(--brand-blue-text)]'
+                                  : 'bg-[var(--bg-surface-muted)] text-[var(--text-secondary)]'
+                              "
+                            >
+                              {{ priorityLabel(q.priority) }}
+                            </span>
+                            <ArrowRight
+                              class="h-3.5 w-3.5 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-blue)]"
+                            />
+                          </div>
+                        </RouterLink>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 </template>

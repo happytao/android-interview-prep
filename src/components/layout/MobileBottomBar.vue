@@ -24,7 +24,7 @@ const toggleMastered = () => {
 
 <template>
   <nav
-    class="apple-header fixed right-0 bottom-0 left-0 z-30 border-t border-b-0 px-2 pt-1.5 lg:hidden"
+    class="fixed right-0 bottom-0 left-0 z-30 border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 pt-1.5 lg:hidden"
     style="padding-bottom: max(0.45rem, env(safe-area-inset-bottom));"
     aria-label="移动端单手快捷操作栏"
   >

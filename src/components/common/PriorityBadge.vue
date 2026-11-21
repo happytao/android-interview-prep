@@ -42,15 +42,14 @@ const statusMap: Record<StudyStatus, { label: string; dot: string }> = {
   <span class="inline-flex flex-wrap items-center gap-2">
     <span
       v-if="priority"
-      class="inline-flex items-center rounded-full font-mono"
-      :class="[priorityMap[priority].cls, compact ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-0.5 text-xs']"
+      class="inline-flex items-center rounded-full text-xs leading-tight"
+      :class="[priorityMap[priority].cls, compact ? 'px-2 py-0.5' : 'px-2.5 py-0.5']"
     >
       {{ priorityMap[priority].label }}
     </span>
     <span
       v-if="status"
-      class="inline-flex items-center gap-1.5 font-mono text-[var(--text-muted)]"
-      :class="compact ? 'text-[11px]' : 'text-xs'"
+      class="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)]"
     >
       <span class="h-1.5 w-1.5 rounded-full" :class="statusMap[status].dot" />
       <span>{{ statusMap[status].label }}</span>

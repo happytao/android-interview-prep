@@ -81,7 +81,7 @@ const statusDotClass = (id: string) => {
   <div class="flex flex-col gap-3">
     <!-- iOS / macOS Segmented Filter -->
     <div
-      class="grid grid-cols-4 gap-0.5 rounded-[10px] bg-[var(--bg-segmented)] p-1 text-[11px]"
+      class="grid grid-cols-4 gap-0.5 rounded-[10px] bg-[var(--bg-segmented)] p-1 text-xs"
     >
       <button
         v-for="f in [

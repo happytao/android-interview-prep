@@ -29,7 +29,7 @@ function typeLabel(t: ReferenceItem['type']): string {
       <h3 class="text-sm font-semibold text-[var(--text-primary)]">权威延伸参考</h3>
       <button
         type="button"
-        class="inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 text-[11px] font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
+        class="inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-3 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         @click="studyStore.setUseCnAndroidDocs(!studyStore.state.useCnAndroidDocs)"
       >
         <Globe class="h-3 w-3 text-[var(--brand-blue)]" />
@@ -48,12 +48,12 @@ function typeLabel(t: ReferenceItem['type']): string {
         class="group flex items-start justify-between gap-3 rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/55 p-3.5 transition hover:border-[var(--brand-blue)]/40 hover:bg-[var(--bg-surface)]"
       >
         <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5 font-mono text-[11px] text-[var(--text-muted)]">
+          <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
             <BookOpen v-if="refItem.type === 'official'" class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
             <Code2 v-else-if="refItem.type === 'aosp'" class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
             <FileText v-else class="h-3.5 w-3.5" />
             <span>{{ typeLabel(refItem.type) }}</span>
-            <span>· {{ refItem.verifiedAt }}</span>
+            <span class="font-mono text-[11px]">· {{ refItem.verifiedAt }}</span>
           </div>
           <div class="mt-1 line-clamp-2 text-xs font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--brand-blue)]">
             {{ refItem.title }}

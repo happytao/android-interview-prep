@@ -189,7 +189,7 @@ const onKeydown = (e: KeyboardEvent) => {
         <div
           class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-4 py-2 text-xs"
         >
-          <div class="font-mono text-[11px] text-[var(--text-muted)]">
+          <div class="text-xs text-[var(--text-muted)]">
             范围：<span class="font-medium text-[var(--text-primary)]">{{ currentDomainName }}</span>
           </div>
 
@@ -220,7 +220,7 @@ const onKeydown = (e: KeyboardEvent) => {
         <div class="flex-1 overflow-y-auto p-2.5">
           <div
             v-if="!query.trim()"
-            class="px-3 py-1.5 font-mono text-[11px] text-[var(--text-muted)]"
+            class="px-3 py-1.5 text-xs text-[var(--text-muted)]"
           >
             {{ priorityFilter === 'all' ? '高频必考直达' : '按重要度直达' }} · 输入关键词检索全量题目
           </div>

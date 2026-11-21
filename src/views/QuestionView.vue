@@ -343,6 +343,9 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
             v-else-if="compiled"
             :question-id="question.id"
             :keywords="question.keywords"
+            :blocks="compiled.blocks"
+            :references="compiled.references"
+            :title="question.title"
             class="mt-6"
           >
             <QuestionBody :key="compiled.id" :blocks="compiled.blocks" :title="question.title" />
