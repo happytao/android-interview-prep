@@ -179,7 +179,7 @@ function priorityLabel(p: QuestionSummary['priority']) {
   <main class="pb-20">
     <!-- Hero Section: 7:5 Split with Subtle Apple/Android Blue-Cyan Ambient Glow -->
     <section class="hero-ambient border-b border-[var(--border-subtle)]">
-      <div class="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
+      <div class="mx-auto max-w-[1360px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <div class="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10">
           <!-- Left 7 cols: Brand Message & Capsule CTAs -->
           <div class="lg:col-span-7">
@@ -335,7 +335,7 @@ function priorityLabel(p: QuestionSummary['priority']) {
     </section>
 
     <!-- Main Bento Knowledge Directory -->
-    <section class="mx-auto max-w-[1200px] px-4 pt-9 sm:px-6 sm:pt-11">
+    <section class="mx-auto max-w-[1360px] px-4 pt-9 sm:px-6 sm:pt-11 lg:px-8">
       <!-- Directory Header & iOS/macOS Segmented Control -->
       <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>

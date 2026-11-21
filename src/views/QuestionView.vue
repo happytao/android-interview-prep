@@ -213,10 +213,10 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
     <!-- 3-Column Android Developers Docs Workspace -->
     <div
       v-else
-      class="mx-auto flex max-w-[1440px] gap-6 px-4 pt-6 pb-24 sm:px-6 lg:gap-8 lg:pb-16"
+      class="mx-auto flex max-w-[1760px] gap-6 px-4 pt-6 pb-24 sm:px-6 lg:gap-8 lg:px-8 lg:pb-16"
     >
       <!-- Left Desktop Sidebar with Sleek Hover Scrollbar -->
-      <aside class="hidden w-[272px] shrink-0 lg:block">
+      <aside class="hidden w-[300px] shrink-0 lg:block">
         <div class="sidebar-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
           <CategoryTree
             v-if="domainManifest"
@@ -231,7 +231,7 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
       <!-- Main Reading Paper Column -->
       <main class="min-w-0 flex-1">
         <article
-          class="bento-card mx-auto max-w-[780px] rounded-[20px] px-5 py-6 sm:px-9 sm:py-8 lg:px-10 lg:py-9"
+          class="bento-card mx-auto max-w-[960px] rounded-[20px] px-5 py-6 sm:px-9 sm:py-8 lg:px-11 lg:py-10"
         >
           <!-- Breadcrumb -->
           <div class="flex flex-wrap items-center gap-1.5 font-mono text-xs text-[var(--text-muted)]">
@@ -386,7 +386,7 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
       </main>
 
       <!-- Right Desktop Documentation Outline (ON THIS PAGE) -->
-      <aside class="hidden w-56 shrink-0 xl:block">
+      <aside class="hidden w-60 shrink-0 xl:block">
         <div class="sticky top-20 space-y-6">
           <div v-if="!isSelfTestCollapsed && compiled && compiled.toc.length > 0">
             <div class="px-3 font-mono text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">

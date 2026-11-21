@@ -43,7 +43,7 @@ const themeLabel = computed(() => {
 
 <template>
   <header class="apple-header sticky top-0 z-30 h-14">
-    <div class="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6">
+    <div class="mx-auto flex h-full max-w-[1760px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
       <!-- Left: Minimalist Apple-style Brand & Pure Domain Breadcrumb -->
       <div class="flex min-w-0 items-center gap-2.5">
         <RouterLink
