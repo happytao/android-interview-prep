@@ -72,7 +72,7 @@ const onInput = () => {
   >
     <div class="mb-2.5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-        <PencilLine class="h-4 w-4 text-[var(--text-muted)]" />
+        <PencilLine class="h-4 w-4 text-[var(--brand-blue)]" />
         <span>个人手记与口述补充（纯文本本地存储）</span>
       </div>
       <span class="font-mono text-[11px] text-[var(--text-muted)]">
@@ -85,7 +85,7 @@ const onInput = () => {
       rows="4"
       maxlength="5000"
       placeholder="记录你在实际项目里的踩坑案例、面试复盘话术或补充理解（纯文本保存，支持导入导出备份）..."
-      class="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-3 text-sm leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-strong)] focus:bg-[var(--bg-surface)] focus:outline-none"
+      class="w-full rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 p-3.5 text-sm leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition focus:border-[var(--brand-blue)] focus:bg-[var(--bg-surface)] focus:ring-2 focus:ring-[var(--brand-blue)]/15 focus:outline-none"
       @input="onInput"
     />
   </section>

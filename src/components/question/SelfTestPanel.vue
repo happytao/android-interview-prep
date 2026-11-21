@@ -41,11 +41,11 @@ const grade = (status: 'mastered' | 'reviewing') => {
     <!-- Collapsed Self-Test Gate (v-if prevents hidden DOM Mermaid getBBox=0 & Ctrl+F leakage) -->
     <section
       v-if="isCollapsed"
-      class="my-6 rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--bg-surface-muted)] p-5 sm:p-6"
+      class="my-6 rounded-[16px] border border-dashed border-[var(--border-strong)] bg-[var(--bg-surface-muted)]/70 p-5 sm:p-6"
     >
-      <div class="flex items-start gap-3">
+      <div class="flex items-start gap-3.5">
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[var(--brand-blue-soft)] text-[var(--brand-blue)]"
         >
           <EyeOff class="h-4 w-4" />
         </span>
@@ -61,7 +61,7 @@ const grade = (status: 'mastered' | 'reviewing') => {
 
       <div
         v-if="hintsShown"
-        class="mt-4 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5"
+        class="mt-4 rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5"
       >
         <div class="mb-2 font-mono text-[11px] font-medium text-[var(--text-muted)]">
           记忆线索关键词
@@ -70,27 +70,27 @@ const grade = (status: 'mastered' | 'reviewing') => {
           <span
             v-for="kw in keywords"
             :key="kw"
-            class="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 py-0.5 font-mono text-xs text-[var(--text-primary)]"
+            class="rounded-full bg-[var(--brand-blue-soft)] px-2.5 py-0.5 font-mono text-xs text-[var(--brand-blue-text)]"
           >
             {{ kw }}
           </span>
         </div>
       </div>
 
-      <div class="mt-5 flex flex-wrap gap-2">
+      <div class="mt-5 flex flex-wrap gap-2.5">
         <button
           v-if="!hintsShown"
           type="button"
-          class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-hover)] sm:text-sm"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-4 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-hover)] sm:text-sm"
           @click="hintsShown = true"
         >
-          <HelpCircle class="h-3.5 w-3.5 text-[var(--text-muted)]" />
+          <HelpCircle class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
           <span>1. 显示关键词提示</span>
         </button>
 
         <button
           type="button"
-          class="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--btn-primary-bg)] px-4 text-xs font-medium text-[var(--btn-primary-fg)] transition hover:opacity-90 sm:text-sm"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--btn-primary-bg)] px-5 text-xs font-medium text-[var(--btn-primary-fg)] shadow-[0_2px_8px_rgba(0,113,227,0.25)] transition hover:bg-[var(--btn-primary-hover)] sm:text-sm"
           @click="revealAnswer"
         >
           <Eye class="h-3.5 w-3.5" />
@@ -103,12 +103,12 @@ const grade = (status: 'mastered' | 'reviewing') => {
     <template v-else>
       <div
         v-if="studyStore.state.selfTestMode"
-        class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-3.5 py-2 text-xs"
+        class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-[12px] bg-[var(--callout-bg)] px-4 py-2.5 text-xs"
       >
         <span class="text-[var(--text-secondary)]">自测解析已展开，对照后记得自评打标</span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 font-medium text-[var(--text-primary)] hover:underline"
+          class="inline-flex items-center gap-1 font-medium text-[var(--brand-blue)] hover:underline"
           @click="collapseAnswer"
         >
           <EyeOff class="h-3.5 w-3.5" />
@@ -120,7 +120,7 @@ const grade = (status: 'mastered' | 'reviewing') => {
 
       <!-- Post-Reveal Self-Grade Bar -->
       <section
-        class="mt-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-4"
+        class="mt-8 rounded-[16px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/70 p-4"
         aria-label="本题掌握度自评"
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -130,10 +130,10 @@ const grade = (status: 'mastered' | 'reviewing') => {
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              class="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition"
+              class="inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 text-xs font-medium transition"
               :class="
                 studyStore.getStatus(questionId) === 'mastered'
-                  ? 'border-[var(--domain-accent)] bg-[var(--domain-accent)] text-[var(--domain-accent-fg)]'
+                  ? 'border-transparent bg-[var(--status-mastered)] text-white shadow-[0_1px_4px_rgba(30,142,62,0.28)]'
                   : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-strong)]'
               "
               @click="grade('mastered')"
@@ -143,10 +143,10 @@ const grade = (status: 'mastered' | 'reviewing') => {
             </button>
             <button
               type="button"
-              class="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition"
+              class="inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 text-xs font-medium transition"
               :class="
                 studyStore.getStatus(questionId) === 'reviewing'
-                  ? 'border-amber-500 bg-amber-500 text-white'
+                  ? 'border-transparent bg-[var(--status-reviewing)] text-white shadow-[0_1px_4px_rgba(217,119,6,0.28)]'
                   : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-strong)]'
               "
               @click="grade('reviewing')"

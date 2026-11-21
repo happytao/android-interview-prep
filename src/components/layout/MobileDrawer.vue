@@ -47,23 +47,23 @@ onUnmounted(() => {
   <Teleport to="body">
     <div
       v-if="open"
-      class="fixed inset-0 z-40 flex flex-col justify-end bg-black/50 backdrop-blur-xs md:flex-row md:justify-start lg:hidden"
+      class="fixed inset-0 z-40 flex flex-col justify-end bg-black/45 backdrop-blur-xs md:flex-row md:justify-start lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="题目目录"
       @click.self="close"
     >
       <aside
-        class="flex max-h-[82vh] w-full flex-col rounded-t-lg border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] md:h-full md:max-h-none md:w-80 md:rounded-none md:border-t-0 md:border-r"
+        class="flex max-h-[82vh] w-full flex-col rounded-t-[20px] border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-2xl md:h-full md:max-h-none md:w-80 md:rounded-none md:border-t-0 md:border-r"
       >
-        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
+        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3.5">
           <div>
             <div class="text-sm font-semibold text-[var(--text-primary)]">{{ domainName }} · 知识目录</div>
             <div class="text-[11px] text-[var(--text-muted)]">点击任一题目快速跳转</div>
           </div>
           <button
             type="button"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] text-[var(--text-primary)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-[10px] bg-[var(--bg-surface-muted)] text-[var(--text-primary)] transition hover:bg-[var(--bg-hover)]"
             aria-label="关闭目录"
             @click="close"
           >
@@ -71,7 +71,7 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-3 pb-8">
+        <div class="flex-1 overflow-y-auto p-3.5 pb-8">
           <CategoryTree
             :domain-id="domainId"
             :categories="categories"

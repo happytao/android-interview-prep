@@ -3,8 +3,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 const THEME_STORAGE_KEY = 'interview-theme'
-const LIGHT_BG = '#FAFBF9'
-const DARK_BG = '#0B0F14'
+const LIGHT_BG = '#F5F5F7'
+const DARK_BG = '#0B0D11'
 
 function readStoredMode(): ThemeMode {
   try {
@@ -31,12 +31,23 @@ function applyThemeToDom(nextMode: ThemeMode, isSystemDark: boolean) {
   if (typeof document === 'undefined') return
   const resolved = nextMode === 'system' ? (isSystemDark ? 'dark' : 'light') : nextMode
   const root = document.documentElement
+  const changed = root.dataset.theme && root.dataset.theme !== resolved
+  if (changed) {
+    root.classList.add('theme-switching')
+  }
   root.dataset.theme = resolved
   root.dataset.themeMode = nextMode
   root.style.colorScheme = resolved
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) {
     meta.setAttribute('content', resolved === 'dark' ? DARK_BG : LIGHT_BG)
+  }
+  if (changed) {
+    // Force a single synchronous style recalc so all buttons/surfaces switch atomically without a white flash
+    void root.offsetHeight
+    requestAnimationFrame(() => {
+      root.classList.remove('theme-switching')
+    })
   }
 }
 

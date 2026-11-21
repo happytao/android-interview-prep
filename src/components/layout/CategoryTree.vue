@@ -19,7 +19,6 @@ const expandedL1 = ref<Set<string>>(new Set())
 const filterMode = ref<'all' | 'must-know' | 'reviewing' | 'bookmarked'>('all')
 const dueSet = computed(() => new Set(studyStore.dueReviewIds))
 
-// Auto-expand L1 containing activeSlug (or first L1 by default)
 watch(
   [() => props.categories, () => props.activeSlug],
   ([cats, slug]) => {
@@ -72,17 +71,17 @@ const categoryStats = (cat: CategoryNode) => {
 
 const statusDotClass = (id: string) => {
   const s = studyStore.getStatus(id)
-  if (s === 'mastered') return 'bg-[var(--domain-accent)]'
-  if (s === 'reviewing') return 'bg-amber-500'
-  return 'bg-zinc-300 dark:bg-zinc-700'
+  if (s === 'mastered') return 'bg-[var(--status-mastered)]'
+  if (s === 'reviewing') return 'bg-[var(--status-reviewing)]'
+  return 'bg-black/15 dark:bg-white/20'
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-3">
-    <!-- Minimal Segmented Filter -->
+    <!-- iOS / macOS Segmented Filter -->
     <div
-      class="grid grid-cols-4 gap-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-0.5 text-[11px]"
+      class="grid grid-cols-4 gap-0.5 rounded-[10px] bg-[var(--bg-segmented)] p-1 text-[11px]"
     >
       <button
         v-for="f in [
@@ -93,11 +92,11 @@ const statusDotClass = (id: string) => {
         ]"
         :key="f.id"
         type="button"
-        class="rounded py-1 font-medium transition"
+        class="rounded-[7px] py-1 font-medium transition"
         :class="
           filterMode === f.id
-            ? 'border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]'
-            : 'border border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+            ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-pill)]'
+            : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
         "
         @click="filterMode = f.id as typeof filterMode"
       >
@@ -105,11 +104,11 @@ const statusDotClass = (id: string) => {
       </button>
     </div>
 
-    <!-- Flat Divided Sidebar Tree -->
-    <nav class="divide-y divide-[var(--border-subtle)] border-y border-[var(--border-subtle)]" aria-label="知识分类目录">
+    <!-- Android Developers Style Clean Navigation Tree -->
+    <nav class="space-y-1" aria-label="知识分类目录">
       <div
         v-if="!categories.some(categoryHasMatches)"
-        class="px-2 py-6 text-center text-xs text-[var(--text-muted)]"
+        class="rounded-[12px] bg-[var(--bg-surface)] px-3 py-6 text-center text-xs text-[var(--text-muted)]"
       >
         当前筛选下暂无匹配题目
       </div>
@@ -118,25 +117,26 @@ const statusDotClass = (id: string) => {
         v-for="cat in categories"
         :key="cat.id"
         v-show="categoryHasMatches(cat)"
+        class="border-b border-[var(--border-subtle)] pb-1.5 last:border-b-0"
       >
         <button
           type="button"
-          class="flex w-full items-center justify-between gap-2 px-1.5 py-2.5 text-left transition-colors hover:bg-[var(--bg-hover)]"
+          class="flex w-full items-center justify-between gap-2 rounded-[10px] px-2 py-2 text-left transition-colors hover:bg-[var(--bg-hover)]"
           @click="toggleL1(cat.id)"
         >
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <span class="font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
+            <div class="flex items-start gap-2">
+              <span class="mt-0.5 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
                 {{ String(cat.order).padStart(2, '0') }}
               </span>
-              <span class="truncate text-xs font-semibold text-[var(--text-primary)]">
+              <span class="line-clamp-2 text-xs leading-snug font-semibold text-[var(--text-primary)]">
                 {{ cat.name }}
               </span>
             </div>
             <div class="mt-1.5 flex items-center gap-2">
-              <div class="h-0.5 flex-1 overflow-hidden bg-[var(--bg-surface-muted)]">
+              <div class="h-1 flex-1 overflow-hidden rounded-full bg-[var(--bg-surface-muted)]">
                 <div
-                  class="h-full bg-[var(--domain-accent)] transition-all duration-300"
+                  class="h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--status-mastered)] transition-all duration-300"
                   :style="{
                     width: `${categoryStats(cat).total ? (categoryStats(cat).mastered / categoryStats(cat).total) * 100 : 0}%`,
                   }"
@@ -156,16 +156,15 @@ const statusDotClass = (id: string) => {
 
         <div
           v-if="expandedL1.has(cat.id) || filterMode !== 'all'"
-          class="border-t border-[var(--border-subtle)] py-1.5 pl-1"
+          class="mt-1 space-y-2.5 pb-1 pl-1"
         >
           <div
             v-for="sub in cat.subcategories"
             :key="sub.id"
-            class="mb-2 last:mb-0"
           >
             <template v-if="sub.questions.some(matchesFilter)">
               <div
-                class="px-2 py-1 font-mono text-[10px] font-medium tracking-wide text-[var(--text-muted)]"
+                class="px-2.5 py-1 font-mono text-[10px] font-medium tracking-wide text-[var(--text-muted)]"
               >
                 {{ String(cat.order).padStart(2, '0') }}-{{ String(sub.order).padStart(2, '0') }} · {{ sub.name }}
               </div>
@@ -176,10 +175,10 @@ const statusDotClass = (id: string) => {
                 >
                   <button
                     type="button"
-                    class="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors"
+                    class="flex w-full items-start gap-2 rounded-[10px] px-2.5 py-1.5 text-left text-xs transition-colors"
                     :class="
                       activeSlug === q.slug
-                        ? 'bg-[var(--bg-surface-muted)] font-semibold text-[var(--text-primary)]'
+                        ? 'bg-[var(--brand-blue-soft)] font-semibold text-[var(--brand-blue-text)]'
                         : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                     "
                     @click="emit('select', q)"

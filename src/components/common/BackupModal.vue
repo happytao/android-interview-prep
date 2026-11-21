@@ -102,16 +102,16 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
   <Teleport to="body">
     <div
       v-if="open"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-xs"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="学习数据备份与偏好设置"
       @click.self="close"
     >
       <div
-        class="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] p-5"
+        class="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[20px] border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 shadow-2xl"
       >
-        <header class="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
+        <header class="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3.5">
           <div>
             <h2 class="text-base font-semibold text-[var(--text-primary)]">学习备份与阅读设置</h2>
             <p class="mt-0.5 text-xs text-[var(--text-muted)]">
@@ -120,7 +120,7 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
           </div>
           <button
             type="button"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
             aria-label="关闭设置"
             @click="close"
           >
@@ -128,12 +128,12 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
           </button>
         </header>
 
-        <div class="mt-4 space-y-5">
+        <div class="mt-5 space-y-5">
           <!-- Reference Mirror Setting -->
-          <section class="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-3.5">
+          <section class="rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/70 p-4">
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-start gap-2.5">
-                <Globe class="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+                <Globe class="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-blue)]" />
                 <div>
                   <div class="text-sm font-medium text-[var(--text-primary)]">
                     Android 官方文档国内镜像
@@ -147,17 +147,13 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
                 type="button"
                 role="switch"
                 :aria-checked="studyStore.state.useCnAndroidDocs"
-                class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-md border border-[var(--border-subtle)] transition"
-                :class="studyStore.state.useCnAndroidDocs ? 'bg-[var(--btn-primary-bg)]' : 'bg-[var(--bg-surface)]'"
+                class="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition"
+                :class="studyStore.state.useCnAndroidDocs ? 'bg-[var(--brand-blue)]' : 'bg-black/15 dark:bg-white/20'"
                 @click="studyStore.setUseCnAndroidDocs(!studyStore.state.useCnAndroidDocs)"
               >
                 <span
-                  class="inline-block h-3.5 w-3.5 transform rounded transition"
-                  :class="
-                    studyStore.state.useCnAndroidDocs
-                      ? 'translate-x-4.5 bg-[var(--btn-primary-fg)]'
-                      : 'translate-x-0.5 bg-[var(--text-muted)]'
-                  "
+                  class="inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-xs transition"
+                  :class="studyStore.state.useCnAndroidDocs ? 'translate-x-5' : 'translate-x-0.5'"
                 />
               </button>
             </div>
@@ -175,10 +171,10 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
                 }}
               </span>
             </div>
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <button
                 type="button"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-[var(--btn-primary-bg)] px-3.5 text-xs font-medium text-[var(--btn-primary-fg)] transition hover:opacity-90"
+                class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-4 text-xs font-medium text-[var(--btn-primary-fg)] transition hover:bg-[var(--btn-primary-hover)]"
                 @click="downloadJson"
               >
                 <Download class="h-3.5 w-3.5" />
@@ -186,10 +182,10 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
               </button>
               <button
                 type="button"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                class="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-4 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-hover)]"
                 @click="copyJson"
               >
-                <Check v-if="copied" class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
+                <Check v-if="copied" class="h-3.5 w-3.5 text-[var(--status-mastered)]" />
                 <Copy v-else class="h-3.5 w-3.5" />
                 <span>{{ copied ? '已复制 JSON 到剪贴板' : '复制 JSON（跨端同步）' }}</span>
               </button>
@@ -201,7 +197,7 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
             <h3 class="text-sm font-medium text-[var(--text-primary)]">导入恢复（支持校验与合并预览）</h3>
             <div class="flex flex-wrap items-center gap-2">
               <label
-                class="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-3 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)]"
+                class="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-3.5 text-xs font-medium text-[var(--text-primary)] transition hover:border-[var(--border-strong)]"
               >
                 <Upload class="h-3.5 w-3.5" />
                 <span>选择 .json 文件</span>
@@ -210,7 +206,7 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
               <button
                 v-if="pasteText.trim()"
                 type="button"
-                class="h-8 rounded-md bg-[var(--btn-primary-bg)] px-3 text-xs font-medium text-[var(--btn-primary-fg)]"
+                class="h-8 rounded-full bg-[var(--btn-primary-bg)] px-3.5 text-xs font-medium text-[var(--btn-primary-fg)]"
                 @click="inspectRawImport(pasteText)"
               >
                 校验粘贴的 JSON
@@ -221,26 +217,26 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
               v-model="pasteText"
               rows="3"
               placeholder="也可以直接粘贴从其他设备复制的备份 JSON 文本..."
-              class="w-full rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-2.5 font-mono text-xs text-[var(--text-primary)] focus:border-[var(--border-strong)] focus:bg-[var(--bg-surface)] focus:outline-none"
+              class="w-full rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/70 p-3 font-mono text-xs text-[var(--text-primary)] focus:border-[var(--brand-blue)] focus:bg-[var(--bg-surface)] focus:outline-none"
             />
 
             <div
               v-if="importError"
-              class="rounded-md border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-600 dark:text-rose-300"
+              class="rounded-[12px] border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-300"
             >
               导入失败：{{ importError }}
             </div>
 
             <div
               v-if="importSuccess"
-              class="rounded-md border border-[var(--domain-accent)]/30 bg-[var(--domain-accent-soft)] p-2.5 text-xs text-[var(--text-primary)]"
+              class="rounded-[12px] bg-[var(--brand-blue-soft)] p-3 text-xs text-[var(--brand-blue-text)]"
             >
               {{ importSuccess }}
             </div>
 
             <div
               v-if="importPreview"
-              class="space-y-2 rounded-md border border-[var(--border-strong)] bg-[var(--bg-surface-muted)] p-3 text-xs"
+              class="space-y-2 rounded-[14px] border border-[var(--border-strong)] bg-[var(--bg-surface-muted)] p-3.5 text-xs"
             >
               <div class="font-medium text-[var(--text-primary)]">
                 校验通过：发现 {{ importPreview.validRecordCount }} 条学习进度、
@@ -254,14 +250,14 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
               <div class="flex flex-wrap gap-2 pt-1">
                 <button
                   type="button"
-                  class="rounded-md bg-[var(--btn-primary-bg)] px-3 py-1.5 font-medium text-[var(--btn-primary-fg)]"
+                  class="rounded-full bg-[var(--btn-primary-bg)] px-3.5 py-1.5 font-medium text-[var(--btn-primary-fg)]"
                   @click="commitImport('merge')"
                 >
                   智能合并到当前记录（推荐）
                 </button>
                 <button
                   type="button"
-                  class="rounded-md border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-medium text-[var(--text-primary)]"
+                  class="rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3.5 py-1.5 font-medium text-[var(--text-primary)]"
                   @click="commitImport('overwrite')"
                 >
                   完全覆盖当前记录
@@ -271,31 +267,31 @@ const commitImport = (strategy: 'merge' | 'overwrite') => {
           </section>
 
           <!-- Danger zone -->
-          <section class="border-t border-[var(--border-subtle)] pt-3">
+          <section class="border-t border-[var(--border-subtle)] pt-3.5">
             <div v-if="!confirmReset" class="flex items-center justify-between">
               <span class="text-xs text-[var(--text-muted)]">清空本地掌握记录与笔记</span>
               <button
                 type="button"
-                class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
+                class="inline-flex items-center gap-1 rounded-[10px] px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
                 @click="confirmReset = true"
               >
                 <RotateCcw class="h-3.5 w-3.5" />
                 <span>重置学习数据</span>
               </button>
             </div>
-            <div v-else class="flex items-center justify-between gap-2 rounded-md border border-rose-500/20 bg-rose-500/10 p-2.5 text-xs">
+            <div v-else class="flex items-center justify-between gap-2 rounded-[12px] border border-rose-500/20 bg-rose-500/10 p-3 text-xs">
               <span class="font-medium text-rose-700 dark:text-rose-300">确认清除全部本地进度与笔记？不可恢复！</span>
               <div class="flex gap-1.5">
                 <button
                   type="button"
-                  class="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 py-1 font-medium text-[var(--text-primary)]"
+                  class="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1 font-medium text-[var(--text-primary)]"
                   @click="confirmReset = false"
                 >
                   取消
                 </button>
                 <button
                   type="button"
-                  class="rounded-md bg-rose-600 px-2.5 py-1 font-medium text-white"
+                  class="rounded-full bg-rose-600 px-3 py-1 font-medium text-white"
                   @click="
                     () => {
                       studyStore.resetProgress()

@@ -261,6 +261,7 @@ export function questionBankPlugin(): Plugin {
       if (href.startsWith('https://')) {
         token.attrSet('target', '_blank')
         token.attrSet('rel', 'noopener noreferrer')
+        token.attrSet('referrerpolicy', 'no-referrer')
       }
       return defaultLinkOpen(tokens, idx, options, env, self)
     }
@@ -277,6 +278,7 @@ export function questionBankPlugin(): Plugin {
           `Forbidden external or data image "${src}" in ${fileLabel}. Use local SVG, Mermaid, or self-hosted CC BY 4.0 official figures instead.`,
         )
       }
+      token.attrSet('referrerpolicy', 'no-referrer')
       return defaultImage(tokens, idx, options, env, self)
     }
 

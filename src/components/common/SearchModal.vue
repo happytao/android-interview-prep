@@ -146,19 +146,19 @@ const onKeydown = (e: KeyboardEvent) => {
   <Teleport to="body">
     <div
       v-if="open"
-      class="fixed inset-0 z-50 flex items-start justify-center bg-black/55 px-3 pt-12 pb-6 backdrop-blur-xs sm:pt-20"
+      class="fixed inset-0 z-50 flex items-start justify-center bg-black/45 px-3 pt-12 pb-6 backdrop-blur-sm sm:pt-20"
       role="dialog"
       aria-modal="true"
       aria-label="全站搜索题目"
       @click.self="close"
     >
       <div
-        class="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)]"
+        class="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] border border-[var(--border-strong)] bg-[var(--bg-surface)] shadow-2xl"
         @keydown="onKeydown"
       >
         <!-- Input Bar -->
-        <div class="flex items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3">
-          <Search class="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+        <div class="flex items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3.5">
+          <Search class="h-4 w-4 shrink-0 text-[var(--brand-blue)]" />
           <input
             ref="inputRef"
             v-model="query"
@@ -170,14 +170,14 @@ const onKeydown = (e: KeyboardEvent) => {
           <button
             v-if="query"
             type="button"
-            class="shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            class="shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             @click="query = ''"
           >
             清空
           </button>
           <button
             type="button"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
             aria-label="关闭搜索"
             @click="close"
           >
@@ -187,13 +187,13 @@ const onKeydown = (e: KeyboardEvent) => {
 
         <!-- Filters -->
         <div
-          class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-4 py-2 text-xs"
+          class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-4 py-2 text-xs"
         >
           <div class="font-mono text-[11px] text-[var(--text-muted)]">
             范围：<span class="font-medium text-[var(--text-primary)]">{{ currentDomainName }}</span>
           </div>
 
-          <div class="flex items-center gap-0.5">
+          <div class="flex items-center gap-0.5 rounded-[9px] bg-[var(--bg-segmented)] p-0.5">
             <button
               v-for="opt in [
                 { value: 'all', label: '不限级别' },
@@ -203,11 +203,11 @@ const onKeydown = (e: KeyboardEvent) => {
               ]"
               :key="opt.value"
               type="button"
-              class="shrink-0 whitespace-nowrap rounded-md border px-2 py-0.5 font-medium transition"
+              class="shrink-0 whitespace-nowrap rounded-[7px] px-2.5 py-0.5 font-medium transition"
               :class="
                 priorityFilter === opt.value
-                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]'
-                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-pill)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               "
               @click="priorityFilter = opt.value as Priority | 'all'"
             >
@@ -217,7 +217,7 @@ const onKeydown = (e: KeyboardEvent) => {
         </div>
 
         <!-- Results -->
-        <div class="flex-1 overflow-y-auto p-2">
+        <div class="flex-1 overflow-y-auto p-2.5">
           <div
             v-if="!query.trim()"
             class="px-3 py-1.5 font-mono text-[11px] text-[var(--text-muted)]"
@@ -227,7 +227,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
           <div
             v-else-if="hits[0]?.isRelaxedFallback"
-            class="mx-2 mb-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300"
+            class="mx-2 mb-1.5 rounded-[10px] border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300"
           >
             未找到全部关键词同时命中的题目，以下展示部分相关性匹配结果：
           </div>
@@ -239,15 +239,15 @@ const onKeydown = (e: KeyboardEvent) => {
             未找到匹配「{{ query }}」的题目，可尝试缩短或拆分关键词。
           </div>
 
-          <ul v-else class="divide-y divide-[var(--border-subtle)]">
+          <ul v-else class="space-y-1">
             <li v-for="(item, idx) in visibleItems" :key="item.id">
               <button
                 type="button"
-                class="flex w-full items-start justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors"
+                class="flex w-full items-start justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors"
                 :class="
                   idx === activeIndex
-                    ? 'bg-[var(--bg-hover)]'
-                    : 'hover:bg-[var(--bg-surface-muted)]'
+                    ? 'bg-[var(--brand-blue-soft)]'
+                    : 'hover:bg-[var(--bg-hover)]'
                 "
                 @mouseenter="activeIndex = idx"
                 @click="navigateTo(item.domain, item.slug)"
@@ -276,14 +276,17 @@ const onKeydown = (e: KeyboardEvent) => {
                     {{ item.summary }}
                   </p>
                 </div>
-                <ArrowRight class="mt-2 h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+                <ArrowRight
+                  class="mt-2 h-4 w-4 shrink-0 transition"
+                  :class="idx === activeIndex ? 'text-[var(--brand-blue)]' : 'text-[var(--text-muted)]'"
+                />
               </button>
             </li>
           </ul>
         </div>
 
         <footer
-          class="hidden items-center justify-between border-t border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-4 py-2 text-[11px] text-[var(--text-muted)] sm:flex"
+          class="hidden items-center justify-between border-t border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-4 py-2 text-[11px] text-[var(--text-muted)] sm:flex"
         >
           <span>↑↓ 选择 · Enter 打开 · Esc 关闭</span>
           <span>支持中英文混合 / 驼峰分词（如 OkHttp、事件分发）</span>

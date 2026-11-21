@@ -81,32 +81,36 @@ onUnmounted(() => {
 <template>
   <figure
     ref="containerRef"
-    class="my-6 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4"
+    class="my-6 overflow-hidden rounded-[16px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)]"
   >
-    <div class="mb-2.5 flex items-center justify-between gap-2">
+    <!-- Refined Light-Gray Top Bar -->
+    <div
+      class="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-4 py-2.5"
+    >
       <span
-        class="inline-flex items-center rounded border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 py-0.5 font-mono text-[11px] font-medium text-[var(--text-secondary)]"
+        class="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-wide text-[var(--text-secondary)]"
       >
-        Mermaid 流程图
+        <span class="h-1.5 w-1.5 rounded-full bg-[var(--brand-blue)]" />
+        <span>ARCHITECTURE FLOW · 机制流程图</span>
       </span>
       <button
         v-if="renderedSvg"
         type="button"
-        class="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)]"
+        class="inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--brand-blue)]/40 hover:text-[var(--brand-blue)]"
         aria-label="全屏缩放流程图"
         @click="lightboxOpen = true"
       >
-        <Maximize2 class="h-3.5 w-3.5" />
+        <Maximize2 class="h-3 w-3" />
         <span>放大查看</span>
       </button>
     </div>
 
     <div
-      class="min-h-[200px] overflow-x-auto rounded-md border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-3"
+      class="min-h-[200px] overflow-x-auto bg-[var(--diagram-surface)] p-4 sm:p-5"
     >
       <div
         v-if="errorMsg"
-        class="rounded-md border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-300"
+        class="rounded-[12px] border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-300"
       >
         <p class="font-semibold">Mermaid 渲染异常：{{ errorMsg }}</p>
         <pre class="mt-2 overflow-x-auto whitespace-pre-wrap text-[11px]">{{ code }}</pre>
@@ -137,7 +141,7 @@ onUnmounted(() => {
     <DiagramLightbox v-model:open="lightboxOpen" :title="title ?? '机制流程图'">
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div
-        class="max-w-[92vw] rounded-lg border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-4 [&>svg]:h-auto [&>svg]:max-h-[75vh] [&>svg]:max-w-[88vw]"
+        class="max-w-[92vw] rounded-[16px] border border-[var(--border-subtle)] bg-[var(--diagram-surface)] p-5 [&>svg]:h-auto [&>svg]:max-h-[75vh] [&>svg]:max-w-[88vw]"
         v-html="renderedSvg"
       />
     </DiagramLightbox>

@@ -68,13 +68,15 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
 </script>
 
 <template>
-  <main class="mx-auto max-w-3xl px-4 py-8 pb-20 sm:px-6 sm:py-10">
-    <header class="border-b border-[var(--border-subtle)] pb-6">
-      <div class="inline-flex items-center gap-1.5 font-mono text-xs tracking-wider text-[var(--text-muted)] uppercase">
+  <main class="mx-auto max-w-3xl px-4 py-10 pb-20 sm:px-6 sm:py-12">
+    <header class="pb-6">
+      <div
+        class="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-blue-soft)] px-3 py-1 font-mono text-[11px] font-semibold tracking-wider text-[var(--brand-blue-text)] uppercase"
+      >
         <Shuffle class="h-3.5 w-3.5" />
         <span>mock interview drill</span>
       </div>
-      <h1 class="mt-2 text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
+      <h1 class="mt-3 text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
         随机抽题与限时口述自测
       </h1>
       <p class="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
@@ -82,19 +84,19 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
       </p>
     </header>
 
-    <!-- Filter Controls -->
-    <section class="mt-6 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-4">
-      <div v-if="activeDomains.length > 1" class="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
+    <!-- Filter Controls Bento Card -->
+    <section class="bento-card rounded-[18px] p-5">
+      <div v-if="activeDomains.length > 1" class="mb-4 flex flex-wrap items-center gap-1.5 text-xs">
         <span class="font-medium text-[var(--text-secondary)]">技术领域：</span>
         <button
           v-for="d in activeDomains"
           :key="d.config.id"
           type="button"
-          class="rounded-md px-2.5 py-1 font-medium transition"
+          class="rounded-full px-3 py-1 font-medium transition"
           :class="
             selectedDomainId === d.config.id
-              ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]'
-              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)]'
+              ? 'bg-[var(--brand-blue)] text-white'
+              : 'bg-[var(--bg-surface-muted)] text-[var(--text-secondary)]'
           "
           @click="selectedDomainId = d.config.id"
         >
@@ -107,7 +109,7 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
           <span class="font-medium text-[var(--text-secondary)]">限定知识模块</span>
           <select
             v-model="selectedL1"
-            class="mt-1 h-9 w-full rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-sm text-[var(--text-primary)] focus:border-[var(--border-strong)] focus:outline-none"
+            class="mt-1.5 h-9 w-full rounded-[10px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 text-sm text-[var(--text-primary)] focus:border-[var(--brand-blue)] focus:bg-[var(--bg-surface)] focus:outline-none"
             @change="drawNext"
           >
             <option value="all">全部分类 ({{ allQuestions.length }} 题)</option>
@@ -125,7 +127,7 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
           <span class="font-medium text-[var(--text-secondary)]">题型梯度</span>
           <select
             v-model="selectedPriority"
-            class="mt-1 h-9 w-full rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-sm text-[var(--text-primary)] focus:border-[var(--border-strong)] focus:outline-none"
+            class="mt-1.5 h-9 w-full rounded-[10px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2.5 text-sm text-[var(--text-primary)] focus:border-[var(--brand-blue)] focus:bg-[var(--bg-surface)] focus:outline-none"
             @change="drawNext"
           >
             <option value="all">不限级别</option>
@@ -138,11 +140,11 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
         <div class="flex items-end">
           <button
             type="button"
-            class="h-9 w-full rounded-md border px-3 text-xs font-medium transition"
+            class="h-9 w-full rounded-[10px] border px-3 text-xs font-medium transition"
             :class="
               onlyDueOrUnlearned
-                ? 'border-[var(--btn-primary-bg)] bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                ? 'border-transparent bg-[var(--brand-blue)] text-white shadow-[0_1px_4px_rgba(0,113,227,0.28)]'
+                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             "
             @click="
               () => {
@@ -156,11 +158,11 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
         </div>
       </div>
 
-      <div class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-muted)]">
+      <div class="mt-4 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3.5 text-xs text-[var(--text-muted)]">
         <span class="font-mono tabular-nums">题池 {{ pool.length }} 题</span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 font-medium text-[var(--text-primary)] hover:underline"
+          class="inline-flex items-center gap-1.5 font-medium text-[var(--brand-blue)] hover:underline"
           @click="drawNext"
         >
           <RotateCcw class="h-3.5 w-3.5" />
@@ -169,10 +171,10 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
       </div>
     </section>
 
-    <!-- Drawn Question Block -->
+    <!-- Drawn Question Bento Card -->
     <section
       v-if="currentQuestion"
-      class="mt-6 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6"
+      class="bento-card mt-6 rounded-[20px] p-6 sm:p-7"
     >
       <div class="flex flex-wrap items-center justify-between gap-2">
         <span class="font-mono text-xs text-[var(--text-muted)]">
@@ -190,34 +192,34 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
 
       <div v-if="showHints" class="mt-5 border-t border-[var(--border-subtle)] pt-4">
         <div class="mb-2 flex items-center gap-1.5 font-mono text-xs font-medium text-[var(--text-muted)]">
-          <Eye class="h-3.5 w-3.5" />
+          <Eye class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
           <span>记忆线索关键词</span>
         </div>
         <div class="flex flex-wrap gap-1.5">
           <span
             v-for="kw in currentQuestion.keywords"
             :key="kw"
-            class="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-2 py-0.5 font-mono text-xs text-[var(--text-secondary)]"
+            class="rounded-full bg-[var(--brand-blue-soft)] px-2.5 py-0.5 font-mono text-xs text-[var(--brand-blue-text)]"
           >
             {{ kw }}
           </span>
         </div>
       </div>
 
-      <div class="mt-6 flex flex-wrap items-center gap-2">
+      <div class="mt-6 flex flex-wrap items-center gap-2.5">
         <button
           v-if="!showHints"
           type="button"
-          class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-hover)] sm:text-sm"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-4 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-hover)] sm:text-sm"
           @click="showHints = true"
         >
-          <HelpCircle class="h-3.5 w-3.5 text-[var(--text-muted)]" />
+          <HelpCircle class="h-3.5 w-3.5 text-[var(--brand-blue)]" />
           <span>提示关键词</span>
         </button>
 
         <RouterLink
           :to="`/${currentQuestion.domain}/${currentQuestion.slug}`"
-          class="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--btn-primary-bg)] px-4 text-xs font-medium text-[var(--btn-primary-fg)] transition hover:opacity-90 sm:text-sm"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--btn-primary-bg)] px-5 text-xs font-medium text-[var(--btn-primary-fg)] shadow-[0_2px_8px_rgba(0,113,227,0.25)] transition hover:bg-[var(--btn-primary-hover)] sm:text-sm"
         >
           <span>查看完整解析与图解</span>
           <ArrowRight class="h-3.5 w-3.5" />
@@ -225,7 +227,7 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
 
         <button
           type="button"
-          class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-3.5 text-xs font-medium text-[var(--text-primary)] transition hover:border-[var(--domain-accent)]"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] px-4 text-xs font-medium text-[var(--text-primary)] transition hover:border-[var(--status-mastered)]/50"
           @click="
             () => {
               if (currentQuestion) studyStore.setStatus(currentQuestion.id, 'mastered')
@@ -233,7 +235,7 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
             }
           "
         >
-          <CheckCircle2 class="h-3.5 w-3.5 text-[var(--domain-accent)]" />
+          <CheckCircle2 class="h-3.5 w-3.5 text-[var(--status-mastered)]" />
           <span>标记掌握并换题</span>
         </button>
       </div>
@@ -241,7 +243,7 @@ if (!currentQuestion.value && allQuestions.value.length > 0) {
 
     <div
       v-else
-      class="mt-6 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)] p-8 text-center text-sm text-[var(--text-muted)]"
+      class="bento-card mt-6 rounded-[20px] p-10 text-center text-sm text-[var(--text-muted)]"
     >
       当前筛选条件下没有匹配题目，请放宽上方筛选条件。
     </div>

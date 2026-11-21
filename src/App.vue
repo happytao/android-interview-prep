@@ -60,7 +60,7 @@ watchEffect(() => {
     : activeDomainConfig.value.accent.light
   const root = document.documentElement.style
   root.setProperty('--domain-accent', accent)
-  root.setProperty('--domain-accent-soft', hexToSoftRgba(accent, isDark ? 0.14 : 0.11))
+  root.setProperty('--domain-accent-soft', isDark ? hexToSoftRgba(accent, 0.16) : '#E8F0FE')
   root.setProperty('--domain-accent-fg', getContrastForeground(accent))
 })
 
