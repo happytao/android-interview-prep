@@ -1,5 +1,8 @@
 # 个人技术面试复习站 · Personal Tech Interview Prep
 
+[![Deploy to VPS](https://github.com/happytao/android-interview-prep/actions/workflows/deploy.yml/badge.svg)](https://github.com/happytao/android-interview-prep/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 面向个人高频复习与系统化沉淀的前端技术面试知识库（Phase 1 已完成 **Android 中级开发工程师** 10 大模块 · 34 个二级专题 · 111 题完整上线；架构原生预留 **前端 / 后端 / 运维 / 网安** 等多领域零改代码扩展能力）。
 
 ## 核心特性（Phase 2 已实施完成）
@@ -35,9 +38,23 @@ pnpm build
 # 本地预览构建产物
 pnpm preview --port 4173 --strictPort
 
-# 一键构建并部署到个人 VPS（使用 rsync 或 scp/ssh）
-./scripts/deploy.ps1 -Server user@your-vps-ip -RemotePath /var/www/interview-prep
+# 本地手工部署（应急用；日常由 GitHub Actions 自动发布，见下节）
+./scripts/deploy.ps1 -Server root@your-vps-ip -RemotePath /var/www/interview-prep
 ```
+
+## 自动化构建与发布（GitHub Actions）
+
+推送到 `main` 分支即自动执行：**类型检查 → 单元/内容校验测试 → 生产构建 → rsync 到 VPS → 修正权限并 reload nginx**。
+
+- Workflow：[`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml)
+- 也可在 GitHub 的 **Actions → Deploy to VPS → Run workflow** 手动触发
+- 触发范围：`content/**`、`src/**`、`plugins/**`、`package.json` 等实际代码或题库变更；
+  `docs/**`、`*.txt`、`README.md`、`LICENSE` 的改动**不会**触发发布（避免纯文档提交污染线上）
+- 并发保护：`concurrency.group = deploy-production` 且 `cancel-in-progress: false`，连续提交不会互相覆盖
+
+仓库需要配置 5 个 Actions Secrets：`VPS_HOST`、`VPS_PORT`、`VPS_USER`、`VPS_SSH_KEY`、`VPS_TARGET_DIR`。
+其中 `VPS_SSH_KEY` 为部署私钥全文；部署后流水线会统一修正目录 755 / 文件 644 权限并 reload nginx，
+避免从归档解压带来的 `777` 权限问题。
 
 ## 文档与 AI 协作框架导航
 
@@ -49,3 +66,10 @@ pnpm preview --port 4173 --strictPort
 - [docs/ANDROID_SYLLABUS.md](./docs/ANDROID_SYLLABUS.md) — Android 中级工程师 10 大模块 111 题完整知识大纲
 - [docs/ADVERSARIAL_REVIEW_PLAN.md](./docs/ADVERSARIAL_REVIEW_PLAN.md) — Gate 1 方案对抗审查与整改归档
 - [docs/ADVERSARIAL_REVIEW_CODE.md](./docs/ADVERSARIAL_REVIEW_CODE.md) — Gate 2 代码与题库对抗审查与整改归档
+
+## 开源协议
+
+本项目基于 [MIT License](./LICENSE) 开源。
+
+题库中引用的官方 Android 文档链接、AOSP 源码页面与 CC BY 4.0 图示，版权归各自原作者所有；
+本项目仅作学习索引与引用，不以之主张任何权利。
