@@ -98,6 +98,7 @@ const themeLabel = computed(() => {
       >
         <RouterLink
           :to="readHomeTarget"
+          :aria-current="!isDrillMode ? 'page' : undefined"
           class="inline-flex h-full items-center gap-1.5 whitespace-nowrap rounded-[8px] px-2.5 font-medium transition sm:px-3"
           :class="
             !isDrillMode
@@ -115,6 +116,7 @@ const themeLabel = computed(() => {
 
         <RouterLink
           :to="{ path: '/mock', query: { domain: props.activeDomain } }"
+          :aria-current="isDrillMode ? 'page' : undefined"
           class="inline-flex h-full items-center gap-1.5 whitespace-nowrap rounded-[8px] px-2.5 font-medium transition sm:px-3"
           :class="
             isDrillMode
@@ -159,6 +161,7 @@ const themeLabel = computed(() => {
 
         <button
           type="button"
+          :aria-pressed="studyStore.state.selfTestMode"
           class="hidden h-8 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-[10px] border px-2.5 text-xs font-medium transition md:inline-flex"
           :class="
             studyStore.state.selfTestMode

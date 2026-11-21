@@ -17,6 +17,7 @@ const prefersReduced = usePrefersReducedMotion()
 
 const quickFilter = ref<SyllabusFilter>('all')
 const expandedL1Ids = ref<Set<string>>(new Set())
+const collapsedInFilterIds = ref<Set<string>>(new Set())
 const activeChapterId = ref<string>('')
 let chapterObserver: IntersectionObserver | null = null
 
@@ -141,6 +142,7 @@ const isFullSyllabus = computed(() => {
 })
 
 function setQuickFilter(next: SyllabusFilter) {
+  collapsedInFilterIds.value = new Set()
   if (next !== 'all' && quickFilter.value === next) {
     quickFilter.value = 'all'
     return
@@ -149,6 +151,13 @@ function setQuickFilter(next: SyllabusFilter) {
 }
 
 function toggleCategory(id: string) {
+  if (quickFilter.value !== 'all') {
+    const next = new Set(collapsedInFilterIds.value)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    collapsedInFilterIds.value = next
+    return
+  }
   const next = new Set(expandedL1Ids.value)
   if (next.has(id)) next.delete(id)
   else next.add(id)
@@ -165,12 +174,18 @@ function setFullSyllabusMode() {
 }
 
 function isCategoryExpanded(id: string) {
-  if (quickFilter.value !== 'all') return true
+  if (quickFilter.value !== 'all') return !collapsedInFilterIds.value.has(id)
   return expandedL1Ids.value.has(id)
 }
 
 async function jumpToChapter(cat: CategoryNode) {
-  if (!expandedL1Ids.value.has(cat.id)) {
+  if (quickFilter.value !== 'all') {
+    if (collapsedInFilterIds.value.has(cat.id)) {
+      const next = new Set(collapsedInFilterIds.value)
+      next.delete(cat.id)
+      collapsedInFilterIds.value = next
+    }
+  } else if (!expandedL1Ids.value.has(cat.id)) {
     const next = new Set(expandedL1Ids.value)
     next.add(cat.id)
     expandedL1Ids.value = next
@@ -476,8 +491,8 @@ function priorityLabel(p: QuestionSummary['priority']) {
               class="sidebar-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2"
               aria-label="章节目录锚点"
             >
-              <div class="px-2.5 font-mono text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-                Chapters · 章节锚点
+              <div class="px-2.5 text-xs font-semibold tracking-wider text-[var(--text-muted)]">
+                章节锚点 · Chapters
               </div>
               <ul class="mt-2.5 border-l border-[var(--border-subtle)] text-xs">
                 <li v-for="item in visibleCategories" :key="item.cat.id">
@@ -516,60 +531,64 @@ function priorityLabel(p: QuestionSummary['priority']) {
                 :data-chapter-id="item.cat.id"
                 class="scroll-mt-20"
               >
-                <button
-                  type="button"
-                  class="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-[var(--bg-hover)] sm:px-6 sm:py-5"
-                  :aria-expanded="isCategoryExpanded(item.cat.id)"
-                  @click="toggleCategory(item.cat.id)"
-                >
-                  <div class="flex min-w-0 flex-1 items-baseline gap-3 sm:gap-4">
-                    <span
-                      class="shrink-0 font-mono text-sm font-medium tabular-nums"
-                      :class="
-                        isCategoryExpanded(item.cat.id)
-                          ? 'text-[var(--brand-blue)]'
-                          : 'text-[var(--text-muted)]'
-                      "
-                    >
-                      {{ String(item.cat.order).padStart(2, '0') }}
+                <h2 class="m-0">
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-[var(--bg-hover)] sm:px-6 sm:py-5"
+                    :aria-expanded="isCategoryExpanded(item.cat.id)"
+                    :aria-controls="`chapter-panel-${item.cat.slug}`"
+                    @click="toggleCategory(item.cat.id)"
+                  >
+                    <span class="flex min-w-0 flex-1 items-baseline gap-3 sm:gap-4">
+                      <span
+                        class="shrink-0 font-mono text-sm font-medium tabular-nums"
+                        :class="
+                          isCategoryExpanded(item.cat.id)
+                            ? 'text-[var(--brand-blue)]'
+                            : 'text-[var(--text-muted)]'
+                        "
+                      >
+                        {{ String(item.cat.order).padStart(2, '0') }}
+                      </span>
+                      <span class="block min-w-0 flex-1">
+                        <span class="block text-base font-semibold tracking-tight text-[var(--text-primary)] sm:text-[17px]">
+                          {{ item.cat.name }}
+                        </span>
+                        <span class="mt-0.5 block line-clamp-1 text-xs font-normal text-[var(--text-muted)] sm:text-[13px]">
+                          {{ item.cat.description }}
+                        </span>
+                      </span>
                     </span>
-                    <div class="min-w-0 flex-1">
-                      <h2 class="text-base font-semibold tracking-tight text-[var(--text-primary)] sm:text-[17px]">
-                        {{ item.cat.name }}
-                      </h2>
-                      <p class="mt-0.5 line-clamp-1 text-xs text-[var(--text-muted)] sm:text-[13px]">
-                        {{ item.cat.description }}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div class="flex shrink-0 items-center gap-3">
-                    <div
-                      class="hidden h-[3px] w-20 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.12] sm:block"
-                      aria-hidden="true"
-                    >
-                      <div
-                        class="h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--status-mastered)] transition-[width] duration-300"
-                        :style="{ width: `${item.masteredPercent}%` }"
+                    <span class="flex shrink-0 items-center gap-3">
+                      <span
+                        class="hidden h-[3px] w-20 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.12] sm:block"
+                        aria-hidden="true"
+                      >
+                        <span
+                          class="block h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--status-mastered)] transition-[width] duration-300"
+                          :style="{ width: `${item.masteredPercent}%` }"
+                        />
+                      </span>
+                      <span class="font-mono text-xs font-normal tabular-nums text-[var(--text-muted)]">
+                        {{ item.mastered }}/{{ item.total }}
+                      </span>
+                      <ChevronDown
+                        v-if="isCategoryExpanded(item.cat.id)"
+                        class="h-4 w-4 text-[var(--text-muted)]"
                       />
-                    </div>
-                    <span class="font-mono text-xs tabular-nums text-[var(--text-muted)]">
-                      {{ item.mastered }}/{{ item.total }}
+                      <ChevronRight
+                        v-else
+                        class="h-4 w-4 text-[var(--text-muted)]"
+                      />
                     </span>
-                    <ChevronDown
-                      v-if="isCategoryExpanded(item.cat.id)"
-                      class="h-4 w-4 text-[var(--text-muted)]"
-                    />
-                    <ChevronRight
-                      v-else
-                      class="h-4 w-4 text-[var(--text-muted)]"
-                    />
-                  </div>
-                </button>
+                  </button>
+                </h2>
 
                 <!-- Paradigm C Style Spacious Single-Column Subsections -->
                 <div
                   v-if="isCategoryExpanded(item.cat.id)"
+                  :id="`chapter-panel-${item.cat.slug}`"
                   class="divide-y divide-[var(--border-subtle)] border-t border-[var(--border-subtle)]"
                 >
                   <div

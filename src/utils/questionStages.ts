@@ -9,7 +9,7 @@ export interface QuestionStages {
 type StageKey = keyof QuestionStages
 
 const H2_BOUNDARY_RE = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi
-const LEITNER_INTERVAL_DAYS = [1, 3, 7, 14, 30] as const
+export const LEITNER_INTERVAL_DAYS = [1, 3, 7, 14, 30] as const
 
 function decodeBasicEntities(text: string): string {
   return text

@@ -280,7 +280,7 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
               <span
                 v-for="kw in question.keywords"
                 :key="kw"
-                class="rounded-full bg-[var(--bg-surface-muted)] px-2.5 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]"
+                class="rounded-full bg-[var(--bg-surface-muted)] px-2.5 py-0.5 text-xs text-[var(--text-secondary)]"
               >
                 {{ kw }}
               </span>
@@ -363,7 +363,7 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
             >
               <ChevronLeft class="h-4 w-4 shrink-0 text-[var(--text-muted)] transition group-hover:-translate-x-0.5 group-hover:text-[var(--brand-blue)]" />
               <div class="min-w-0">
-                <div class="font-mono text-[11px] text-[var(--text-muted)]">上一题</div>
+                <div class="text-xs text-[var(--text-muted)]">上一题</div>
                 <div class="truncate text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--brand-blue)]">
                   {{ adjacent.prev.title }}
                 </div>
@@ -377,7 +377,7 @@ const statusButtonClass = (value: StudyStatus, active: boolean) => {
               class="group flex items-center justify-end gap-3 rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/55 p-3.5 text-right transition hover:border-[var(--brand-blue)]/40 hover:bg-[var(--bg-surface)]"
             >
               <div class="min-w-0">
-                <div class="font-mono text-[11px] text-[var(--text-muted)]">下一题</div>
+                <div class="text-xs text-[var(--text-muted)]">下一题</div>
                 <div class="truncate text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--brand-blue)]">
                   {{ adjacent.next.title }}
                 </div>

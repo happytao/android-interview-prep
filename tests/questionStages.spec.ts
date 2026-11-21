@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { QuestionBlock } from '@/types/interview'
-import { getNextLeitnerIntervalDays, splitCompiledIntoStages } from '@/utils/questionStages'
+import {
+  getNextLeitnerIntervalDays,
+  LEITNER_INTERVAL_DAYS,
+  splitCompiledIntoStages,
+} from '@/utils/questionStages'
 
 describe('splitCompiledIntoStages', () => {
   it('splits a single HTML block containing all 5 standard H2 sections cleanly', () => {
@@ -151,11 +155,9 @@ describe('splitCompiledIntoStages', () => {
 
 describe('getNextLeitnerIntervalDays', () => {
   it('matches studyStore Leitner schedule across review counts', () => {
-    expect(getNextLeitnerIntervalDays(0)).toBe(1)
-    expect(getNextLeitnerIntervalDays(1)).toBe(3)
-    expect(getNextLeitnerIntervalDays(2)).toBe(7)
-    expect(getNextLeitnerIntervalDays(3)).toBe(14)
-    expect(getNextLeitnerIntervalDays(4)).toBe(30)
-    expect(getNextLeitnerIntervalDays(12)).toBe(30)
+    LEITNER_INTERVAL_DAYS.forEach((days, idx) => {
+      expect(getNextLeitnerIntervalDays(idx)).toBe(days)
+    })
+    expect(getNextLeitnerIntervalDays(12)).toBe(LEITNER_INTERVAL_DAYS[LEITNER_INTERVAL_DAYS.length - 1])
   })
 })

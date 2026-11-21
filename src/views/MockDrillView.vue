@@ -134,6 +134,7 @@ const revealStage = ref<0 | 1 | 2>(0)
 const notesExpanded = ref(false)
 const sessionResults = ref<SessionResultItem[]>([])
 const sessionFinished = ref(false)
+const requeuedIds = new Set<string>()
 
 // Compiled question loading with cancellation guard
 const compiled = ref<CompiledQuestion | null>(null)
@@ -223,6 +224,7 @@ function buildDeck(customSource?: QuestionSummary[]) {
     !customSource && roundSize.value > 0 ? ordered.slice(0, roundSize.value) : ordered
 
   deck.value = finalDeck
+  requeuedIds.clear()
   currentIndex.value = 0
   revealStage.value = 0
   notesExpanded.value = false
@@ -308,17 +310,28 @@ watch(selectedDomainId, () => {
 
 function gradeAndAdvance(grade: DrillGrade) {
   const q = currentQuestion.value
-  if (!q || sessionFinished.value) return
+  if (!q || sessionFinished.value || !compiled.value) return
 
   let nextDays: number | undefined
   if (grade === 'mastered') {
     nextDays = getNextIntervalDays(q.id)
     studyStore.setStatus(q.id, 'mastered')
+  } else if (grade === 'forgot') {
+    studyStore.setStatus(q.id, 'reviewing', { resetReviewCount: true })
+    if (!requeuedIds.has(q.id)) {
+      requeuedIds.add(q.id)
+      deck.value.push(q)
+    }
   } else {
     studyStore.setStatus(q.id, 'reviewing')
   }
 
-  sessionResults.value.push({ question: q, grade, nextDays })
+  const existingIdx = sessionResults.value.findIndex((r) => r.question.id === q.id)
+  if (existingIdx !== -1) {
+    sessionResults.value[existingIdx] = { question: q, grade, nextDays }
+  } else {
+    sessionResults.value.push({ question: q, grade, nextDays })
+  }
   revealStage.value = 0
   notesExpanded.value = false
   elapsedSeconds.value = 0
@@ -364,24 +377,25 @@ function clearFilters() {
 const onKeydown = (e: KeyboardEvent) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return
   if (isEditableTarget(e.target)) return
-  if (
-    typeof document !== 'undefined' &&
-    document.querySelector('.fixed.inset-0.z-50, .fixed.inset-0.z-\\[60\\], [role="dialog"][aria-modal="true"]')
-  ) {
+  if (typeof document !== 'undefined' && document.querySelector('[aria-modal="true"]')) {
     return
   }
   if (sessionFinished.value || !currentQuestion.value) return
 
   if (e.code === 'Space' || e.key === ' ') {
-    e.preventDefault()
-    if (e.repeat) return
+    // Allow native Space activation on focused interactive controls
+    if ((e.target as HTMLElement | null)?.closest('button, a, [role="button"], summary, [tabindex]')) {
+      return
+    }
     if (revealStage.value < 2 && compiled.value) {
+      e.preventDefault()
+      if (e.repeat) return
       revealStage.value = (revealStage.value + 1) as 1 | 2
     }
     return
   }
 
-  if (e.repeat) return
+  if (e.repeat || revealStage.value < 1 || !compiled.value) return
   if (e.key === '1') {
     e.preventDefault()
     gradeAndAdvance('forgot')
@@ -401,7 +415,7 @@ onMounted(() => {
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', onKeydown)
     timerInterval = setInterval(() => {
-      if (timerRunning.value && !sessionFinished.value && currentQuestion.value) {
+      if (timerRunning.value && !sessionFinished.value && currentQuestion.value && !isLoading.value) {
         elapsedSeconds.value += 1
       }
     }, 1000)
@@ -426,11 +440,13 @@ onUnmounted(() => {
       <div class="mx-auto flex h-12 max-w-4xl items-center justify-between gap-2 px-4 sm:px-6">
         <!-- Left: Session Progress -->
         <div class="flex min-w-0 items-center gap-2 text-xs">
-          <span class="inline-flex items-center gap-1.5 font-medium text-[var(--text-primary)] tabular-nums">
+          <span class="inline-flex min-w-0 items-center gap-1.5 font-medium text-[var(--text-primary)] tabular-nums">
             <Zap class="h-3.5 w-3.5 shrink-0 text-[var(--brand-blue)]" />
-            <template v-if="deck.length === 0">题池 0 题</template>
-            <template v-else-if="sessionFinished">本轮已结束</template>
-            <template v-else>第 {{ currentIndex + 1 }} / {{ deck.length }} 题</template>
+            <span class="truncate">
+              <template v-if="deck.length === 0">题池 0 题</template>
+              <template v-else-if="sessionFinished">本轮已结束</template>
+              <template v-else>第 {{ currentIndex + 1 }} / {{ deck.length }} 题</template>
+            </span>
           </span>
           <span
             v-if="!sessionFinished && dueInPoolCount > 0"
@@ -459,7 +475,7 @@ onUnmounted(() => {
                 !prefersReduced && elapsedSeconds > 60 ? 'animate-pulse' : '',
               ]"
             >
-              {{ formatSeconds(elapsedSeconds) }} / 01:00
+              {{ formatSeconds(elapsedSeconds) }}<span class="hidden sm:inline"> / 01:00</span>
             </span>
             <button
               type="button"
@@ -1028,13 +1044,15 @@ onUnmounted(() => {
       <div class="mx-auto max-w-4xl px-4 pt-2.5 sm:px-6">
         <div class="mb-2 hidden items-center justify-between text-xs text-[var(--text-muted)] sm:flex">
           <span>口述完成直接打分，自动无缝切入下一题</span>
-          <span>快捷键：[Space] 逐阶揭示 · [1] [2] [3] 快速评级</span>
+          <span v-if="revealStage === 0">快捷键：先按 [Space] 揭晓思路后可用 [1] [2] [3] 快速评级</span>
+          <span v-else>快捷键：[Space] 展开完整解析 · [1] [2] [3] 快速评级</span>
         </div>
 
         <div class="grid grid-cols-3 gap-2">
           <button
             type="button"
-            class="flex min-h-11 flex-col items-center justify-center rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-2 py-1.5 text-center transition hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface)] sm:h-10 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3"
+            :disabled="!compiled"
+            class="flex min-h-11 flex-col items-center justify-center rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-2 py-1.5 text-center transition hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface)] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3"
             @click="gradeAndAdvance('forgot')"
           >
             <kbd
@@ -1051,7 +1069,8 @@ onUnmounted(() => {
 
           <button
             type="button"
-            class="flex min-h-11 flex-col items-center justify-center rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-2 py-1.5 text-center transition hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface)] sm:h-10 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3"
+            :disabled="!compiled"
+            class="flex min-h-11 flex-col items-center justify-center rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface-muted)]/60 px-2 py-1.5 text-center transition hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface)] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3"
             @click="gradeAndAdvance('rough')"
           >
             <kbd
@@ -1068,7 +1087,8 @@ onUnmounted(() => {
 
           <button
             type="button"
-            class="flex min-h-11 flex-col items-center justify-center rounded-[12px] bg-[var(--btn-primary-bg)] px-2 py-1.5 text-center text-[var(--btn-primary-fg)] shadow-[0_2px_8px_rgba(0,113,227,0.25)] transition hover:bg-[var(--btn-primary-hover)] sm:h-10 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3"
+            :disabled="!compiled"
+            class="flex min-h-11 flex-col items-center justify-center rounded-[12px] bg-[var(--btn-primary-bg)] px-2 py-1.5 text-center text-[var(--btn-primary-fg)] shadow-[0_2px_8px_rgba(0,113,227,0.25)] transition hover:bg-[var(--btn-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3"
             @click="gradeAndAdvance('mastered')"
           >
             <kbd

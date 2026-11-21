@@ -50,6 +50,12 @@ const nextMasteredDays = computed(() =>
   getNextLeitnerIntervalDays(studyStore.getRecord(props.questionId)?.reviewCount ?? 0),
 )
 
+const isMasteredToday = computed(() => {
+  const record = studyStore.getRecord(props.questionId)
+  if (!record || record.status !== 'mastered') return false
+  return new Date(record.updatedAt).toDateString() === new Date().toDateString()
+})
+
 const revealStage1 = () => {
   halfRevealed.value = true
 }
@@ -241,7 +247,8 @@ const grade = (status: 'mastered' | 'reviewing') => {
               @click="grade('mastered')"
             >
               <CheckCircle2 class="h-3.5 w-3.5" />
-              <span>流畅答出 · 已掌握 (+{{ nextMasteredDays }}d)</span>
+              <span v-if="isMasteredToday">流畅答出 · 今日已掌握</span>
+              <span v-else>流畅答出 · 已掌握 (+{{ nextMasteredDays }}d)</span>
             </button>
             <button
               type="button"

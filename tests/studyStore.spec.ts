@@ -48,4 +48,22 @@ describe('useStudyStore', () => {
     store.applyImport(preview, 'merge')
     expect(store.getStatus('android.handler-epoll')).toBe('reviewing')
   })
+
+  it('keeps same-day mastered clicks idempotent and resets reviewCount only on forgot', () => {
+    const store = useStudyStore()
+    store.setStatus('android.handler-epoll', 'mastered')
+    expect(store.getRecord('android.handler-epoll')?.reviewCount).toBe(1)
+
+    // Repeated same-day click must not advance Leitner box again
+    store.setStatus('android.handler-epoll', 'mastered')
+    expect(store.getRecord('android.handler-epoll')?.reviewCount).toBe(1)
+
+    // Rough reviewing preserves prior count
+    store.setStatus('android.handler-epoll', 'reviewing')
+    expect(store.getRecord('android.handler-epoll')?.reviewCount).toBe(1)
+
+    // Forgot reviewing explicitly resets reviewCount to 0
+    store.setStatus('android.handler-epoll', 'reviewing', { resetReviewCount: true })
+    expect(store.getRecord('android.handler-epoll')?.reviewCount).toBe(0)
+  })
 })

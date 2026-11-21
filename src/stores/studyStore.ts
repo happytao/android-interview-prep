@@ -3,10 +3,10 @@ import { computed, ref } from 'vue'
 import { aliasToIdMap, validQuestionIds } from '@/domains/registry'
 import { parseStudyProgressImport, type ImportParseResult } from '@/schemas/content'
 import type { StudyProgressV1, StudyRecord, StudyStatus } from '@/types/interview'
+import { LEITNER_INTERVAL_DAYS } from '@/utils/questionStages'
 
 const STORAGE_KEY = 'interview-study-v1'
 const DAY_MS = 86_400_000
-const LEITNER_DAYS = [1, 3, 7, 14, 30]
 
 let persistRequested = false
 function requestDurableStorage() {
@@ -73,9 +73,14 @@ export const useStudyStore = defineStore('study', () => {
 
   const getRecord = (id: string): StudyRecord | undefined => state.value.records[id]
 
-  const setStatus = (id: string, status: StudyStatus) => {
+  const setStatus = (
+    id: string,
+    status: StudyStatus,
+    options?: { resetReviewCount?: boolean },
+  ) => {
     const now = new Date()
-    const prevCount = state.value.records[id]?.reviewCount ?? 0
+    const prevRecord = state.value.records[id]
+    const prevCount = prevRecord?.reviewCount ?? 0
     if (status === 'unlearned') {
       delete state.value.records[id]
     } else if (status === 'reviewing') {
@@ -83,11 +88,18 @@ export const useStudyStore = defineStore('study', () => {
         status,
         updatedAt: now.toISOString(),
         nextReviewAt: now.toISOString(),
-        reviewCount: prevCount,
+        reviewCount: options?.resetReviewCount ? 0 : prevCount,
       }
     } else {
+      // Idempotent within the same calendar day so repeated clicks on "已掌握" do not inflate the Leitner box
+      if (
+        prevRecord?.status === 'mastered' &&
+        new Date(prevRecord.updatedAt).toDateString() === now.toDateString()
+      ) {
+        return
+      }
       const nextCount = prevCount + 1
-      const days = LEITNER_DAYS[Math.min(nextCount - 1, LEITNER_DAYS.length - 1)]!
+      const days = LEITNER_INTERVAL_DAYS[Math.min(nextCount - 1, LEITNER_INTERVAL_DAYS.length - 1)]!
       state.value.records[id] = {
         status,
         updatedAt: now.toISOString(),
