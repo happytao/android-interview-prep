@@ -207,3 +207,59 @@ server {
   - [ ] 访问线上首页 `/` 正常加载，无 404 / 控制台报错。
   - [ ] 直接浏览器刷新子路由（如 `/android/ble-gatt-architecture`）正常返回 200（验证 Nginx `try_files` 生效）。
   - [ ] 响应头或页面 `<meta>` 包含 `no-referrer` 策略。
+
+
+---
+
+## 附录：实际落地方案（2026-11-21 已完成并验证）
+
+本节记录线上真实配置，与上文模板的差异以此为准。**上文第 3 节「生成专用部署密钥」可跳过**——本项目直接复用了既有的部署密钥，没有新建密钥对。
+
+### 实际 Workflow 结构
+
+文件：`.github/workflows/deploy.yml`
+
+拆成两个 job，让 Actions 页面上「测试过没过」一目了然：
+
+1. **`Verify & Build`**
+   checkout → pnpm 12.21.0 → Node（读 `.nvmrc`，当前 24）→ `pnpm install --frozen-lockfile`
+   → `pnpm typecheck` → `pnpm test`（vitest）→ `pnpm build` → 产物校验 → 上传 `dist` artifact
+2. **`Deploy to VPS`**（`needs: verify`，前一个 job 全绿才跑）
+   下载 artifact → 校验 5 个 Secrets → 配置 SSH → `rsync --delete` → 修权限 + `nginx -t` + reload
+
+每个 job `timeout-minutes: 10`；实测整条流水线约 **70–80 秒**。
+
+### 与上文模板的关键差异
+
+| 项 | 上文模板 | 实际实现 |
+| :--- | :--- | :--- |
+| `paths-ignore` | 含 `*.txt`、`docs/**`、`README.md` | 同上，但**绝不忽略 `*.md`** —— 题库内容在 `content/**/*.md`，忽略 md 会导致「改了题却不发布」 |
+| 权限修正 | 无 | 部署后 `find -type d 755` + `find -type f 644` + `chown www-data`，并断言不存在组/全局可写文件 |
+| nginx | 无 | 部署后 `nginx -t && systemctl reload nginx` |
+| 私钥校验 | 无 | 先 `ssh-keygen -y -f` 验证私钥可被解析；`ssh-keyscan` 返回空则直接报错退出 |
+| SPA 回退 | 需自行配置 | VPS 既有 nginx 已含 `try_files $uri $uri/ /index.html`，无需改动 |
+| 部署用户 | 建议低权限 `deploy` | 实际使用 `root` + `chown www-data`（与既有运维方式保持一致） |
+
+### 已配置的 Secrets
+
+`VPS_HOST`、`VPS_PORT`、`VPS_USER`、`VPS_SSH_KEY`、`VPS_TARGET_DIR`（`/var/www/androidinterview`）。
+
+### 踩坑记录（都是真实遇到并修掉的）
+
+1. **首次推送工作流文件不会自动触发**
+   仓库中第一个包含 `deploy.yml` 的 push 没有产生任何 run（`total_count = 0`），
+   需要用 `workflow_dispatch` 手动触发一次；此后所有 push 均正常自动触发。
+
+2. **`ssh` 只打印 `usage:` 并退出 255**
+   不是网络问题，而是该 step 的 `env` 里漏了 `VPS_USER`，
+   目标地址展开成 `@216.167.118.33`，ssh 认为没有合法 destination。
+   → 凡涉及 ssh 的 step 必须带齐 `VPS_HOST / VPS_PORT / VPS_USER`。
+
+3. **下载 job 日志返回 403**
+   `GET /repos/{owner}/{repo}/actions/jobs/{id}/logs` 会 302 到 Azure Blob 签名 URL；
+   带 `Authorization` 头跟随重定向会被拒。用 `curl -L` 即可（跨主机默认不转发认证头），
+   而且返回的是**纯文本日志**而非 zip。
+
+4. **rsync 归档导入的 777 权限**
+   通过 tar 归档发布时文件会带 `777`，nginx 能跑但全站可写。
+   → 已固化为部署后的权限归一化步骤，并在流水线里断言 `perm /022` 为 0。
