@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-    # 题库内容在 content/**/*.md，绝对不能忽略 md，
-    # 否则改题不会触发发布。
+    # 题库内容在 content/**/*.md，绝对不能忽略 md，否则改题不会触发发布。
     paths-ignore:
       - 'docs/**'
       - 'README.md'
@@ -22,10 +21,13 @@ permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
-    name: Test, Build & Rsync to VPS
+  # ------------------------------------------------------------------
+  # Job 1：纯验证 + 构建。任何一步失败都不会污染线上。
+  # ------------------------------------------------------------------
+  verify:
+    name: Verify & Build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
@@ -48,7 +50,7 @@ jobs:
       - name: Typecheck (vue-tsc + tsc)
         run: pnpm typecheck
 
-      - name: Run test suite
+      - name: Test suite (vitest)
         run: pnpm test
 
       - name: Build production bundle
@@ -56,10 +58,34 @@ jobs:
 
       - name: Verify build output
         run: |
-          test -f dist/index.html      || { echo "::error::dist/index.html missing"; exit 1; }
-          test -f dist/404.html        || { echo "::error::dist/404.html missing"; exit 1; }
-          test -d dist/assets          || { echo "::error::dist/assets missing"; exit 1; }
+          test -f dist/index.html || { echo "::error::dist/index.html missing"; exit 1; }
+          test -f dist/404.html   || { echo "::error::dist/404.html missing"; exit 1; }
+          test -d dist/assets     || { echo "::error::dist/assets missing"; exit 1; }
           echo "build files: $(find dist -type f | wc -l)"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 3
+          if-no-files-found: error
+
+  # ------------------------------------------------------------------
+  # Job 2：只在 Job 1 全绿后才部署。
+  # ------------------------------------------------------------------
+  deploy:
+    name: Deploy to VPS
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
 
       - name: Check required secrets
         env:
@@ -82,17 +108,24 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -T 20 -p "$VPS_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # 私钥必须能被 ssh 正常解析，否则后面会得到难以定位的认证失败
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
+          if ! ssh-keyscan -T 20 -p "$VPS_PORT" -H "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null || [ ! -s ~/.ssh/known_hosts ]; then
+            echo "::error::ssh-keyscan returned nothing for ${VPS_HOST}:${VPS_PORT}"
+            exit 1
+          fi
           chmod 644 ~/.ssh/known_hosts
           ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" \
               -o BatchMode=yes -o ConnectTimeout=20 \
-              "${VPS_USER}@${VPS_HOST}" 'echo "ssh ok: $(hostname)"'
+              "${VPS_USER}@${VPS_HOST}" 'echo "ssh ok: $(hostname) $(date -u +%FT%TZ)"'
 
       - name: Rsync dist/ to VPS
         env:
@@ -102,10 +135,10 @@ jobs:
           VPS_TARGET_DIR: ${{ secrets.VPS_TARGET_DIR }}
         run: |
           rsync -az --delete --chmod=D755,F644 \
-            -e "ssh -i ~/.ssh/deploy_key -p ${VPS_PORT} -o BatchMode=yes" \
+            -e "ssh -i ~/.ssh/deploy_key -p ${VPS_PORT} -o BatchMode=yes -o ConnectTimeout=20" \
             dist/ "${VPS_USER}@${VPS_HOST}:${VPS_TARGET_DIR}/"
 
-      - name: Fix permissions and reload nginx on VPS
+      - name: Fix permissions and reload nginx
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
@@ -113,18 +146,17 @@ jobs:
           VPS_TARGET_DIR: ${{ secrets.VPS_TARGET_DIR }}
         run: |
           ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" \
-              -o BatchMode=yes \
+              -o BatchMode=yes -o ConnectTimeout=20 \
               "${VPS_USER}@${VPS_HOST}" \
               "TARGET_DIR='${VPS_TARGET_DIR}' bash -s" <<'REMOTE_SCRIPT'
           set -euo pipefail
           D="${TARGET_DIR:?VPS_TARGET_DIR not passed}"
 
-          # rsync 从 tar/Windows 带过来的 777 权限会让所有人为可写，必须统一修正
+          # 从归档/Windows 带过来的 777 权限会让所有人可写，必须统一修正
           find "$D" -type d -exec chmod 755 {} +
           find "$D" -type f -exec chmod 644 {} +
           chown -R www-data:www-data "$D"
 
-          # 自检：不允许存在组可写或全局可写文件
           BAD=$(find "$D" -type f -perm /022 | wc -l)
           if [ "$BAD" -ne 0 ]; then
             echo "::error::$BAD files are group/world writable"
